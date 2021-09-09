@@ -10,37 +10,37 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="file://$MODULE_DIR$/src/com/company/javaml-0.1.7" />
+          <root url="file://$MODULE_DIR$/src/com/company/tools/javaml-0.1.7" />
         </CLASSES>
         <JAVADOC>
-          <root url="file://$MODULE_DIR$/src/com/company/javaml-0.1.7/doc" />
+          <root url="file://$MODULE_DIR$/src/com/company/tools/javaml-0.1.7/doc" />
         </JAVADOC>
         <SOURCES>
-          <root url="file://$MODULE_DIR$/src/com/company/javaml-0.1.7" />
+          <root url="file://$MODULE_DIR$/src/com/company/tools/javaml-0.1.7" />
         </SOURCES>
-        <jarDirectory url="file://$MODULE_DIR$/src/com/company/javaml-0.1.7" recursive="false" />
-        <jarDirectory url="file://$MODULE_DIR$/src/com/company/javaml-0.1.7" recursive="false" type="SOURCES" />
+        <jarDirectory url="file://$MODULE_DIR$/src/com/company/tools/javaml-0.1.7" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/src/com/company/tools/javaml-0.1.7" recursive="false" type="SOURCES" />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="file://$MODULE_DIR$/src/com/company/ajt-2" />
+          <root url="file://$MODULE_DIR$/src/com/company/tools/ajt-2" />
         </CLASSES>
         <JAVADOC>
-          <root url="file://$MODULE_DIR$/src/com/company/ajt-2/doc" />
+          <root url="file://$MODULE_DIR$/src/com/company/tools/ajt-2/doc" />
         </JAVADOC>
         <SOURCES>
-          <root url="file://$MODULE_DIR$/src/com/company/ajt-2" />
+          <root url="file://$MODULE_DIR$/src/com/company/tools/ajt-2" />
         </SOURCES>
-        <jarDirectory url="file://$MODULE_DIR$/src/com/company/ajt-2" recursive="false" />
-        <jarDirectory url="file://$MODULE_DIR$/src/com/company/ajt-2" recursive="false" type="SOURCES" />
+        <jarDirectory url="file://$MODULE_DIR$/src/com/company/tools/ajt-2" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/src/com/company/tools/ajt-2" recursive="false" type="SOURCES" />
       </library>
     </orderEntry>
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/src/com/company/JSAT-0.0.9.jar!/" />
+          <root url="jar://$MODULE_DIR$/src/com/company/tools/JSAT-0.0.9.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
