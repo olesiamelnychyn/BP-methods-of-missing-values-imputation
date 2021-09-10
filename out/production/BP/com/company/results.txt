@@ -1,0 +1,145 @@
+Results:
+
+LinearRegression (columnPredictor=0)
+
+Performance:
+	Mean-Squared Error: 47.38154999999995
+	Root Mean-Squared Error: 6.883425745949465
+	Mean-Absolute Error: 5.984999999999997
+	Relative-Squared Error: 0.0869636686546972
+	Root Relative-Squared Error: 0.29489603024574135
+	Relative-Absolute Error: 0.29489603024574135
+	Correlation Coefficient: 0.9246178273698517
+
+LinearRegression (columnPredictor=1)
+
+Performance:
+	Mean-Squared Error: 52.60164999999999
+	Root Mean-Squared Error: 7.252699497428526
+	Mean-Absolute Error: 6.284999999999997
+	Relative-Squared Error: 1.1474769998360008
+	Root Relative-Squared Error: 1.0712035286704393
+	Relative-Absolute Error: 1.0712035286704393
+	Correlation Coefficient: 0.9411923072271637
+
+LinearRegression (columnPredictor=2)
+
+Performance:
+	Mean-Squared Error: 64.01482999999986
+	Root Mean-Squared Error: 8.000926821312632
+	Mean-Absolute Error: 6.790999999999985
+	Relative-Squared Error: 0.8164779285379827
+	Root Relative-Squared Error: 0.903591682419655
+	Relative-Absolute Error: 0.903591682419655
+	Correlation Coefficient: 0.8572335863789888
+
+LinearRegression (columnPredictor=3)
+
+Performance:
+	Mean-Squared Error: 304.86667999999986
+	Root Mean-Squared Error: 17.460431838875003
+	Mean-Absolute Error: 14.941999999999997
+	Relative-Squared Error: 5.29550867973035
+	Root Relative-Squared Error: 2.3011972274732018
+	Relative-Absolute Error: 2.3011972274732018
+	Correlation Coefficient: -0.6256896280692318
+
+MultipleLinearRegression
+
+Performance:
+	Mean-Squared Error: 27.378170000000022
+	Root Mean-Squared Error: 5.2324153122625905
+	Mean-Absolute Error: 4.6090000000000035
+	Relative-Squared Error: 0.9962228551212903
+	Root Relative-Squared Error: 0.9981096408317527
+	Relative-Absolute Error: 0.9981096408317526
+	Correlation Coefficient: 1.0176792670507244
+
+PolynomialCurveFitter (columnPredictor=0)
+
+Performance:
+	Mean-Squared Error: 54.79170000000001
+	Root Mean-Squared Error: 7.402141582001794
+	Mean-Absolute Error: 6.136000000000001
+	Relative-Squared Error: 0.12098298676748323
+	Root Relative-Squared Error: 0.347826086956518
+	Relative-Absolute Error: 0.347826086956518
+	Correlation Coefficient: 0.9150493815954636
+
+PolynomialCurveFitter (columnPredictor=1)
+
+Performance:
+	Mean-Squared Error: 54.20200000000007
+	Root Mean-Squared Error: 7.362200757925586
+	Mean-Absolute Error: 6.638000000000005
+	Relative-Squared Error: 1.8627863679732088
+	Root Relative-Squared Error: 1.3648393194706874
+	Relative-Absolute Error: 1.3648393194706872
+	Correlation Coefficient: 0.9312816629488886
+
+PolynomialCurveFitter (columnPredictor=2)
+
+Performance:
+	Mean-Squared Error: 60.00843999999982
+	Root Mean-Squared Error: 7.746511472914748
+	Mean-Absolute Error: 6.661999999999989
+	Relative-Squared Error: 0.8791277904238342
+	Root Relative-Squared Error: 0.9376181474480079
+	Relative-Absolute Error: 0.9376181474480079
+	Correlation Coefficient: 0.8688878056428443
+
+PolynomialCurveFitter (columnPredictor=3)
+
+Performance:
+	Mean-Squared Error: 311.4579300000003
+	Root Mean-Squared Error: 17.6481707267354
+	Mean-Absolute Error: 15.267000000000007
+	Relative-Squared Error: 5.799993567775909
+	Root Relative-Squared Error: 2.4083175803402486
+	Relative-Absolute Error: 2.4083175803402486
+	Correlation Coefficient: -0.6255243867726392
+
+GaussianCurveFitter (columnPredictor=0)
+
+Performance:
+	Mean-Squared Error: 3.7498378280286815E168
+	Root Mean-Squared Error: 1.9364498000280518E84
+	Mean-Absolute Error: 1.9364498000280516E84
+	Relative-Squared Error: 5.95550541284138E166
+	Root Relative-Squared Error: 2.440390422215548E83
+	Relative-Absolute Error: 2.4403904222155475E83
+	Correlation Coefficient: NaN
+
+GaussianCurveFitter (columnPredictor=1)
+
+Performance:
+	Mean-Squared Error: 1.6682211275303517E127
+	Root Mean-Squared Error: 4.084386278904521E63
+	Mean-Absolute Error: 4.084386278904521E63
+	Relative-Squared Error: 2.6494745667564823E125
+	Root Relative-Squared Error: 5.147304699312527E62
+	Relative-Absolute Error: 5.147304699312527E62
+	Correlation Coefficient: NaN
+
+GaussianCurveFitter (columnPredictor=2)
+
+Performance:
+	Mean-Squared Error: 2.0624491263910007E56
+	Root Mean-Squared Error: 1.436122949608076E28
+	Mean-Absolute Error: 1.4361229496080763E28
+	Relative-Squared Error: 3.2755888385682026E54
+	Root Relative-Squared Error: 1.809858789676201E27
+	Relative-Absolute Error: 1.809858789676201E27
+	Correlation Coefficient: NaN
+
+GaussianCurveFitter (columnPredictor=3)
+
+Performance:
+	Mean-Squared Error: 4.1419311328748205E17
+	Root Mean-Squared Error: 6.435783660809941E8
+	Mean-Absolute Error: 6.43498133819E8
+	Relative-Squared Error: 6.409087133708694E15
+	Root Relative-Squared Error: 8.005677443982299E7
+	Relative-Absolute Error: 8.005677443982297E7
+	Correlation Coefficient: -0.6524298405541801
+
