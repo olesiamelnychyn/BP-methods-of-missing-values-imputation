@@ -12,8 +12,8 @@ public class PerformanceMeasures {
      * @return mean-squared error
      */
     static public double MSError(Vec actual, Vec predicted){
-        int n= actual.length();
-        double sum=0;
+        int n = actual.length();
+        double sum = 0.0;
         for (int i = 0; i < n; i++) {
             sum+= pow(predicted.get(i) - actual.get(i), 2);
         }
@@ -28,8 +28,8 @@ public class PerformanceMeasures {
      * @return root mean-squared error
      */
     static public double RMSError(Vec actual, Vec predicted){
-        int n= actual.length();
-        double sum=0;
+        int n = actual.length();
+        double sum = 0.0;
         for (int i = 0; i < n; i++) {
             sum+= pow(predicted.get(i) - actual.get(i), 2);
         }
@@ -44,8 +44,8 @@ public class PerformanceMeasures {
      * @return mean-absolute error
      */
     static public double meanAbsoluteError(Vec actual, Vec predicted){
-        int n= actual.length();
-        double sum=0;
+        int n = actual.length();
+        double sum = 0.0;
         for (int i = 0; i < n; i++) {
             sum+= abs(predicted.get(i) - actual.get(i));
         }
@@ -59,16 +59,15 @@ public class PerformanceMeasures {
      * @param actual original values
      * @return relative-squared error
      */
-    static public double relativeSquaredError(Vec actual, Vec predicted){
-        int n= actual.length();
-        double meanTraining=actual.mean();
-        double sumTop=0, sumBottom=0;
+    static public double relativeSquaredError (Vec actual, Vec predicted, double meanTraining) {
+        int n = actual.length();
+        double sumTop = 0.0, sumBottom = 0.0;
         for (int i = 0; i < n; i++) {
-            sumTop=pow(predicted.get(i)- actual.get(i), 2);
-            sumBottom=pow(actual.get(i) - meanTraining, 2);
+            sumTop += pow(predicted.get(i) - actual.get(i), 2);
+            sumBottom += pow(actual.get(i) - meanTraining, 2);
         }
 
-        return sumTop/sumBottom;
+        return sumTop / sumBottom;
     }
 
     /** Root Relative-Squared Error
@@ -77,16 +76,15 @@ public class PerformanceMeasures {
      * @param actual original values
      * @return root relative-squared error
      */
-    static public double rootRelativeSquaredError(Vec actual, Vec predicted){
+    static public double rootRelativeSquaredError (Vec actual, Vec predicted, double meanTraining) {
         int n = actual.length();
-        double meanTraining=actual.mean();
-        double sumTop=0, sumBottom=0;
+        double sumTop = 0, sumBottom = 0;
         for (int i = 0; i < n; i++) {
-            sumTop=pow(predicted.get(i)- actual.get(i), 2);
-            sumBottom=pow(actual.get(i) - meanTraining, 2);
+            sumTop += pow(predicted.get(i) - actual.get(i), 2);
+            sumBottom += pow(actual.get(i) - meanTraining, 2);
         }
 
-        return sqrt(sumTop/sumBottom);
+        return sqrt(sumTop / sumBottom);
     }
 
     /** Relative-Absolute Error
@@ -95,15 +93,15 @@ public class PerformanceMeasures {
      * @param actual original values
      * @return relative-absolute error
      */
-    static public double relativeAbsoluteError(Vec actual, Vec predicted){
-        int n= actual.length();
-        double meanTraining=actual.mean();
-        double sumTop=0, sumBottom=0;
+    static public double relativeAbsoluteError (Vec actual, Vec predicted, double meanTraining) {
+        int n = actual.length();
+        double sumTop = 0.0, sumBottom = 0.0;
         for (int i = 0; i < n; i++) {
-            sumTop=abs(predicted.get(i)- actual.get(i));
-            sumBottom=abs(actual.get(i) - meanTraining);
+            sumTop += abs(predicted.get(i) - actual.get(i));
+            sumBottom += abs(actual.get(i) - meanTraining);
         }
 
-        return sumTop/sumBottom;
+
+        return sumTop / sumBottom;
     }
 }

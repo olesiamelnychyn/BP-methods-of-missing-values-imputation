@@ -39,19 +39,33 @@ public class DatasetManipulation {
         return new SimpleDataSet(listDataPoints);
     }
 
-    static public SimpleDataSet createDeepCopy(SimpleDataSet dataset, int from, int to){
+    static public SimpleDataSet createDeepCopy (SimpleDataSet dataset, int from, int to) {
         List<DataPoint> ll = new ArrayList<>();
         ll.add(dataset.getDataPoint(from++).clone());
         SimpleDataSet datasetCopy = new SimpleDataSet(ll);
-        for(DataPoint obj : dataset.getDataPoints().subList(from,to)) {
+        for (DataPoint obj : dataset.getDataPoints().subList(from, to)) {
             datasetCopy.add(obj.clone());
         }
-         return datasetCopy;
+        return datasetCopy;
     }
 
-    static public void printStatistics(SimpleDataSet dataset, int columnPredictor, int columnPredicted){
-        System.out.println( "Statistics:\n\tStandard deviation of predictor: "+ dataset.getDataMatrix().getColumn(columnPredictor).standardDeviation());
-        System.out.println( "\tStandard deviation of predicted: "+dataset.getDataMatrix().getColumn(columnPredicted).standardDeviation());
-        System.out.println( "\tCorrelation Coefficient: "+ DescriptiveStatistics.sampleCorCoeff(dataset.getDataMatrix().getColumn(columnPredictor), dataset.getDataMatrix().getColumn(columnPredicted))+"\n");
+    static public double[][] toArray (SimpleDataSet dataset, int[] columns) {
+        double[][] array = new double[dataset.getSampleSize()][columns.length + 1];
+        int i = 0;
+        for (DataPoint obj : dataset.getDataPoints()) {
+            int k = 0;
+            array[i][k++] = 1;
+            for (int j = 0; j < columns.length; j++) {
+                array[i][k++] = obj.getNumericalValues().get(j);
+            }
+            i++;
+        }
+        return array;
+    }
+
+    static public void printStatistics (SimpleDataSet dataset, int columnPredictor, int columnPredicted) {
+        System.out.println("Statistics:\n\tStandard deviation of predictor: " + dataset.getDataMatrix().getColumn(columnPredictor).standardDeviation());
+        System.out.println("\tStandard deviation of predicted: " + dataset.getDataMatrix().getColumn(columnPredicted).standardDeviation());
+        System.out.println("\tCorrelation Coefficient: " + DescriptiveStatistics.sampleCorCoeff(dataset.getDataMatrix().getColumn(columnPredictor), dataset.getDataMatrix().getColumn(columnPredicted)) + "\n");
     }
 }
