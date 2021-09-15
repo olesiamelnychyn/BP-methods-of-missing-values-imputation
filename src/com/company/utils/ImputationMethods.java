@@ -34,10 +34,10 @@ public class ImputationMethods {
 		this.columnPredicted = columnPredicted;
 		dataset = dataSet;
 
-		this.test = DatasetManipulation.createDeepCopy(dataset, 5, 6);
-		SimpleDataSet datasetCopy = DatasetManipulation.createDeepCopy(dataset, 0, 30);
+		this.test = DatasetManipulation.createDeepCopy(dataset, 10, 20);
+		SimpleDataSet datasetCopy = DatasetManipulation.createDeepCopy(dataset, 0, 1000);
 		List<DataPoint> training = datasetCopy.getDataPoints();
-		for (int i = 5; i < 6; i++) {
+		for (int i = 10; i < 20; i++) {
 			training.remove(datasetCopy.getDataPoint(i));
 		}
 		this.training = new SimpleDataSet(training);
@@ -48,14 +48,13 @@ public class ImputationMethods {
 		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(training, 0, training.getSampleSize());
 		SimpleDataSet testCopy = DatasetManipulation.createDeepCopy(test, 0, test.getSampleSize());
 
-		System.out.println("Size:" + trainingCopy.getSampleSize() + " " + testCopy.getSampleSize());
-		DatasetManipulation.printStatistics(dataset, columnPredictor, columnPredicted);
+//		DatasetManipulation.printStatistics(dataset, columnPredictor, columnPredicted);
 		double[] reg = SimpleLinearRegression.regres(trainingCopy.getDataMatrix().getColumn(columnPredictor), trainingCopy.getDataMatrix().getColumn(columnPredicted));
 		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET + "\na & b: [" + reg[0] + "," + reg[1] + "]");
 //        System.out.println("\n\n(test,columnPredicted):");
 		for (DataPoint dp : testCopy.getDataPoints()) {
 			double newValue = Double.parseDouble(df2.format(reg[0] + reg[1] * dp.getNumericalValues().get(columnPredictor)).replace(',', '.'));
-			System.out.println("(" + dp.getNumericalValues().get(columnPredicted) + "," + newValue + ")");
+//			System.out.println("(" + dp.getNumericalValues().get(columnPredicted) + "," + newValue + ")");
 			dp.getNumericalValues().set(columnPredicted, newValue);
 		}
 
@@ -82,7 +81,7 @@ public class ImputationMethods {
 			DataPoint simple = testCopy.getDataPoint(index);
 			index++;
 			double newValue = Double.parseDouble(df2.format(multipleLinearRegression.regress(dp)).replace(',', '.'));
-			System.out.println("(" + simple.getNumericalValues().get(columnPredicted) + "," + newValue + ")");
+//			System.out.println("(" + simple.getNumericalValues().get(columnPredicted) + "," + newValue + ")");
 			simple.getNumericalValues().set(columnPredicted, newValue);
 		}
 
@@ -110,7 +109,7 @@ public class ImputationMethods {
 
 		for (DataPoint dp : testCopy.getDataPoints()) {
 			double newValue = Double.parseDouble(df2.format(polyValue(coeff, dp.getNumericalValues().get(columnPredictor))).replace(',', '.'));
-			System.out.println("(" + dp.getNumericalValues().get(columnPredicted) + "," + newValue + ")");
+//			System.out.println("(" + dp.getNumericalValues().get(columnPredicted) + "," + newValue + ")");
 			dp.getNumericalValues().set(columnPredicted, newValue);
 		}
 
@@ -140,7 +139,7 @@ public class ImputationMethods {
 
 		for (DataPoint dp : testCopy.getDataPoints()) {
 			double newValue = Double.parseDouble(df2.format(gaussianValue(coeff, dp.getNumericalValues().get(columnPredictor))).replace(',', '.'));
-			System.out.println("(" + dp.getNumericalValues().get(columnPredicted) + "," + newValue + ")");
+//			System.out.println("(" + dp.getNumericalValues().get(columnPredicted) + "," + newValue + ")");
 			dp.getNumericalValues().set(columnPredicted, newValue);
 		}
 
@@ -166,7 +165,7 @@ public class ImputationMethods {
 
 		for (DataPoint dp : testCopy.getDataPoints()) {
 			double newValue = Double.parseDouble(df2.format(polynomialSplineFunction.value(dp.getNumericalValues().get(columnPredictor))).replace(',', '.'));
-			System.out.println("(" + dp.getNumericalValues().get(columnPredicted) + "," + newValue + ")");
+//			System.out.println("(" + dp.getNumericalValues().get(columnPredicted) + "," + newValue + ")");
 			dp.getNumericalValues().set(columnPredicted, newValue);
 		}
 
@@ -178,7 +177,7 @@ public class ImputationMethods {
 		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
 		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(training, 0, training.getSampleSize());
 		SimpleDataSet testCopy = DatasetManipulation.createDeepCopy(test, 0, test.getSampleSize());
-		PolynomialRegression polynomialRegression = new PolynomialRegression(trainingCopy.getDataMatrix().getColumn(columnPredictor).arrayCopy(), trainingCopy.getDataMatrix().getColumn(columnPredicted).arrayCopy(), 3);
+		PolynomialRegression polynomialRegression = new PolynomialRegression(trainingCopy.getDataMatrix().getColumn(columnPredictor).arrayCopy(), trainingCopy.getDataMatrix().getColumn(columnPredicted).arrayCopy(), 2);
 
 		System.out.print("Coefficients: [");
 		for (int i = 0; i <= polynomialRegression.degree() - 1; i++) {
@@ -196,13 +195,13 @@ public class ImputationMethods {
 
 	}
 
-	public void MultipleLinearRegressionJama () throws IOException {
+	public void MultipleLinearRegressionJama (int[] predictors) throws IOException {
 		String method = "MultipleLinearRegressionJama ";
 		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
 		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(training, 0, training.getSampleSize());
 		SimpleDataSet testCopy = DatasetManipulation.createDeepCopy(test, 0, test.getSampleSize());
-		double[][] regressionTrainingDataSet = DatasetManipulation.toArray(trainingCopy, new int[]{0, 1, 2, 3});
-		double[][] regressionTestDataSet = DatasetManipulation.toArray(testCopy, new int[]{0, 1, 2, 3});
+		double[][] regressionTrainingDataSet = DatasetManipulation.toArray(trainingCopy, predictors);
+		double[][] regressionTestDataSet = DatasetManipulation.toArray(testCopy, predictors);
 		MultipleLinearRegressionJama multipleLinearRegression = new MultipleLinearRegressionJama(regressionTrainingDataSet, trainingCopy.getDataMatrix().getColumn(columnPredicted).arrayCopy());
 
 		System.out.print("Coefficients: [");
@@ -213,7 +212,7 @@ public class ImputationMethods {
 
 		for (int i = 0; i < testCopy.getSampleSize(); i++) {
 			double newValue = Double.parseDouble(df2.format(multipleLinearRegression.predict(regressionTestDataSet[i])).replace(',', '.'));
-			System.out.println("(" + testCopy.getDataPoint(i).getNumericalValues().get(columnPredicted) + "," + newValue + ")");
+//			System.out.println("(" + testCopy.getDataPoint(i).getNumericalValues().get(columnPredicted) + "," + newValue + ")");
 			testCopy.getDataPoint(i).getNumericalValues().set(columnPredicted, newValue);
 		}
 

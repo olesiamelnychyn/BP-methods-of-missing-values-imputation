@@ -12,8 +12,19 @@ public class Main {
 
 	public static void main (String[] args) throws IOException {
 
-		SimpleDataSet dataset = DatasetManipulation.readDataset("src/com/company/data/Dataset.csv");
-		int columnPredicted = 4;
+		SimpleDataSet dataset = DatasetManipulation.readDataset("src/com/company/data/combined_csv_new.csv");
+		int[] columnPredictors = new int[dataset.getDataMatrix().cols() - 1];
+		int columnPredicted = 3;
+		int k = 0;
+		for (int i = 0; i < dataset.getDataMatrix().cols() - 1; i++) {
+			if (k != columnPredicted) {
+				columnPredictors[i] = k++;
+			} else {
+				columnPredictors[i] = ++k;
+				k++;
+			}
+		}
+
 		ImputationMethods imputationMethods = new ImputationMethods(columnPredicted, dataset);
 
 		String str = "Results:\n\n";
@@ -22,7 +33,7 @@ public class Main {
 		writer.close();
 
 		//Linear Regression
-		for (int columnPredictor = 0; columnPredictor < 4; columnPredictor++) {
+		for (int columnPredictor : columnPredictors) {
 			imputationMethods.LinearRegressionJSAT(columnPredictor);
 		}
 
@@ -30,27 +41,27 @@ public class Main {
 		imputationMethods.MultipleLinearRegressionJSAT();
 
 		//Polynomial Curve Fitter
-		for (int columnPredictor = 0; columnPredictor < 4; columnPredictor++) {
+		for (int columnPredictor : columnPredictors) {
 			imputationMethods.PolynomialCurveFitterApache(columnPredictor);
 		}
 
 //		Gaussian Curve Fitter - takes some time
-		for (int columnPredictor = 0; columnPredictor < 4; columnPredictor++) {
+		for (int columnPredictor : columnPredictors) {
 			imputationMethods.GaussianCurveFitterApache(columnPredictor);
 		}
 
 //		Linear Interpolator - values must be strictly increasing
-//		for (int columnPredictor = 0; columnPredictor < 4; columnPredictor++) {
+//		for(int columnPredictor : columnPredictors){
 //			imputationMethods.LinearInterpolatorApache(columnPredictor);
 //		}
 
 		//Polynomial Regression from JAMA
-		for (int columnPredictor = 0; columnPredictor < 4; columnPredictor++) {
+		for (int columnPredictor : columnPredictors) {
 			imputationMethods.PolynomialRegressionJama(columnPredictor);
 		}
 
 		//Multiple Linear Regression from JAMA
-		imputationMethods.MultipleLinearRegressionJama();
+		imputationMethods.MultipleLinearRegressionJama(columnPredictors);
 	}
 
 }

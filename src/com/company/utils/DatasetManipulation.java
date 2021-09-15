@@ -2,41 +2,26 @@ package com.company.utils;
 
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
-import jsat.linear.DenseVector;
+import jsat.io.CSV;
 import jsat.math.DescriptiveStatistics;
-import net.sf.javaml.core.Dataset;
-import net.sf.javaml.core.DefaultDataset;
-import net.sf.javaml.tools.data.FileHandler;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class DatasetManipulation {
 
-    static public SimpleDataSet readDataset(String fileName){
-
-//        System.out.println("Hello");
-//        double[] values = new double[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-//        Instance instance = new DenseInstance(values, "positive");
-//        System.out.println(instance+"\n");
-
-        Dataset data = new DefaultDataset();
-        try {
-            data = FileHandler.loadDataset(new File(fileName), 0, ",");
-
-        } catch (IOException e) {
-            e.printStackTrace();
+    static public SimpleDataSet readDataset (String fileName) throws IOException {
+        SimpleDataSet simpleDataSet = CSV.read(Paths.get(fileName), ',', 0, ' ', new HashSet());
+        List<DataPoint> list = new ArrayList<>();
+        for (DataPoint dp : simpleDataSet.getDataPoints()) {
+            if (dp.getNumericalValues().countNaNs() == 0) {
+                list.add(dp);
+            }
         }
-
-        List<DataPoint> listDataPoints = new ArrayList<>();
-        for (int i=0; i<data.size(); i++){
-            DataPoint dp = new DataPoint(new DenseVector(new ArrayList<>(data.get(i).values())));
-            listDataPoints.add(dp);
-        }
-
-        return new SimpleDataSet(listDataPoints);
+        return new SimpleDataSet(list);
     }
 
     static public SimpleDataSet createDeepCopy (SimpleDataSet dataset, int from, int to) {
@@ -55,7 +40,7 @@ public class DatasetManipulation {
         for (DataPoint obj : dataset.getDataPoints()) {
             int k = 0;
             array[i][k++] = 1;
-            for (int j = 0; j < columns.length; j++) {
+            for (int j : columns) {
                 array[i][k++] = obj.getNumericalValues().get(j);
             }
             i++;
