@@ -3,198 +3,229 @@ Results:
 LinearRegression (columnPredictor=0)
 
 Performance:
-	Mean-Squared Error: 3,1
-	Root Mean-Squared Error: 1,76
-	Mean-Absolute Error: 1,65
-	Relative-Squared Error: 0,78
-	Root Relative-Squared Error: 88,47%
-	Relative-Absolute Error: 86,68%
-	Correlation Coefficient: -0,62
-
-LinearRegression (columnPredictor=1)
-
-Performance:
-	Mean-Squared Error: 2,21
-	Root Mean-Squared Error: 1,49
-	Mean-Absolute Error: 1,37
-	Relative-Squared Error: 0,56
-	Root Relative-Squared Error: 74,78%
-	Relative-Absolute Error: 71,88%
-	Correlation Coefficient: -0,29
-
-LinearRegression (columnPredictor=2)
-
-Performance:
-	Mean-Squared Error: 3,02
-	Root Mean-Squared Error: 1,74
-	Mean-Absolute Error: 1,66
-	Relative-Squared Error: 0,76
-	Root Relative-Squared Error: 87,28%
-	Relative-Absolute Error: 87,1%
-	Correlation Coefficient: 0,5
-
-LinearRegression (columnPredictor=4)
-
-Performance:
-	Mean-Squared Error: 4,45
-	Root Mean-Squared Error: 2,11
-	Mean-Absolute Error: 1,91
-	Relative-Squared Error: 1,12
-	Root Relative-Squared Error: 105,97%
-	Relative-Absolute Error: 100,43%
-	Correlation Coefficient: -0,1
-
-MultipleLinearRegression
-
-Performance:
-	Mean-Squared Error: 1,65
-	Root Mean-Squared Error: 1,28
-	Mean-Absolute Error: 1,06
-	Relative-Squared Error: 0,42
-	Root Relative-Squared Error: 64,57%
-	Relative-Absolute Error: 55,72%
-	Correlation Coefficient: -0
-
-PolynomialCurveFitter (columnPredictor=0)
-
-Performance:
-	Mean-Squared Error: 3,38
-	Root Mean-Squared Error: 1,84
-	Mean-Absolute Error: 1,74
-	Relative-Squared Error: 0,85
-	Root Relative-Squared Error: 92,4%
-	Relative-Absolute Error: 91,14%
-	Correlation Coefficient: -0,6
-
-PolynomialCurveFitter (columnPredictor=1)
-
-Performance:
-	Mean-Squared Error: 2,83
-	Root Mean-Squared Error: 1,68
-	Mean-Absolute Error: 1,57
-	Relative-Squared Error: 0,71
-	Root Relative-Squared Error: 84,47%
-	Relative-Absolute Error: 82,53%
-	Correlation Coefficient: -0,28
-
-PolynomialCurveFitter (columnPredictor=2)
-
-Performance:
-	Mean-Squared Error: 2,93
-	Root Mean-Squared Error: 1,71
-	Mean-Absolute Error: 1,64
-	Relative-Squared Error: 0,74
-	Root Relative-Squared Error: 85,99%
-	Relative-Absolute Error: 85,84%
-	Correlation Coefficient: 0,54
-
-PolynomialCurveFitter (columnPredictor=4)
-
-Performance:
 	Mean-Squared Error: 4,49
 	Root Mean-Squared Error: 2,12
-	Mean-Absolute Error: 1,93
-	Relative-Squared Error: 1,13
-	Root Relative-Squared Error: 106,51%
-	Relative-Absolute Error: 101,32%
-	Correlation Coefficient: 0,03
+	Mean-Absolute Error: 2,1
+	Relative-Squared Error: 0,02
+	Root Relative-Squared Error: 15,53%
+	Relative-Absolute Error: 17,69%
+	Correlation Coefficient: 2
 
-GaussianCurveFitter (columnPredictor=0)
 
-Performance:
-	Mean-Squared Error: 3,04
-	Root Mean-Squared Error: 1,74
-	Mean-Absolute Error: 1,64
-	Relative-Squared Error: 0,77
-	Root Relative-Squared Error: 87,68%
-	Relative-Absolute Error: 85,89%
-	Correlation Coefficient: -0,62
-
-GaussianCurveFitter (columnPredictor=1)
+	Mean Absolute Percentage Error: 45,84%LinearRegression (columnPredictor=1)
 
 Performance:
-	Mean-Squared Error: 2,24
-	Root Mean-Squared Error: 1,5
-	Mean-Absolute Error: 1,38
-	Relative-Squared Error: 0,57
-	Root Relative-Squared Error: 75,29%
-	Relative-Absolute Error: 72,46%
-	Correlation Coefficient: -0,32
+	Mean-Squared Error: 15,05
+	Root Mean-Squared Error: 3,88
+	Mean-Absolute Error: 3,41
+	Relative-Squared Error: 0,08
+	Root Relative-Squared Error: 28,43%
+	Relative-Absolute Error: 28,8%
+	Correlation Coefficient: 2
 
-GaussianCurveFitter (columnPredictor=2)
+
+	Mean Absolute Percentage Error: 75,97%LinearRegression (columnPredictor=2)
 
 Performance:
-	Mean-Squared Error: 3,13
-	Root Mean-Squared Error: 1,77
-	Mean-Absolute Error: 1,69
-	Relative-Squared Error: 0,79
-	Root Relative-Squared Error: 88,97%
-	Relative-Absolute Error: 88,73%
-	Correlation Coefficient: 0,49
+	Mean-Squared Error: 142,41
+	Root Mean-Squared Error: 11,93
+	Mean-Absolute Error: 10,84
+	Relative-Squared Error: 0,76
+	Root Relative-Squared Error: 87,44%
+	Relative-Absolute Error: 91,55%
+	Correlation Coefficient: 2
 
-GaussianCurveFitter (columnPredictor=4)
+
+	Mean Absolute Percentage Error: 240,99%LinearRegression (columnPredictor=3)
+
+Performance:
+	Mean-Squared Error: 125,46
+	Root Mean-Squared Error: 11,2
+	Mean-Absolute Error: 9,29
+	Relative-Squared Error: 0,67
+	Root Relative-Squared Error: 82,07%
+	Relative-Absolute Error: 78,42%
+	Correlation Coefficient: 2
+
+
+	Mean Absolute Percentage Error: 207,55%MultipleLinearRegression
+
+Performance:
+	Mean-Squared Error: 9,55
+	Root Mean-Squared Error: 3,09
+	Mean-Absolute Error: 2,54
+	Relative-Squared Error: 0,05
+	Root Relative-Squared Error: 22,64%
+	Relative-Absolute Error: 21,45%
+	Correlation Coefficient: 2
+
+
+	Mean Absolute Percentage Error: 54,79%PolynomialCurveFitter (columnPredictor=0)
+
+Performance:
+	Mean-Squared Error: 5,69
+	Root Mean-Squared Error: 2,39
+	Mean-Absolute Error: 2,02
+	Relative-Squared Error: 0,03
+	Root Relative-Squared Error: 17,48%
+	Relative-Absolute Error: 17,06%
+	Correlation Coefficient: 2
+
+
+	Mean Absolute Percentage Error: 43,65%PolynomialCurveFitter (columnPredictor=1)
+
+Performance:
+	Mean-Squared Error: 1,08
+	Root Mean-Squared Error: 1,04
+	Mean-Absolute Error: 0,91
+	Relative-Squared Error: 0,01
+	Root Relative-Squared Error: 7,62%
+	Relative-Absolute Error: 7,73%
+	Correlation Coefficient: 2
+
+
+	Mean Absolute Percentage Error: 20,38%PolynomialCurveFitter (columnPredictor=2)
+
+Performance:
+	Mean-Squared Error: 159,06
+	Root Mean-Squared Error: 12,61
+	Mean-Absolute Error: 10,57
+	Relative-Squared Error: 0,85
+	Root Relative-Squared Error: 92,41%
+	Relative-Absolute Error: 89,27%
+	Correlation Coefficient: 2
+
+
+	Mean Absolute Percentage Error: 236,13%PolynomialCurveFitter (columnPredictor=3)
+
+Performance:
+	Mean-Squared Error: 149,78
+	Root Mean-Squared Error: 12,24
+	Mean-Absolute Error: 11
+	Relative-Squared Error: 0,8
+	Root Relative-Squared Error: 89,68%
+	Relative-Absolute Error: 92,86%
+	Correlation Coefficient: 2
+
+
+	Mean Absolute Percentage Error: 244,61%GaussianCurveFitter (columnPredictor=0)
 
 Performance:
 	Mean-Squared Error: 4,33
 	Root Mean-Squared Error: 2,08
 	Mean-Absolute Error: 1,87
-	Relative-Squared Error: 1,09
-	Root Relative-Squared Error: 104,6%
-	Relative-Absolute Error: 97,96%
-	Correlation Coefficient: 0,01
+	Relative-Squared Error: 0,02
+	Root Relative-Squared Error: 15,25%
+	Relative-Absolute Error: 15,75%
+	Correlation Coefficient: 2
 
-PolynomialRegressionJama (columnPredictor=0)
+
+	Mean Absolute Percentage Error: 40,44%GaussianCurveFitter (columnPredictor=1)
 
 Performance:
-	Mean-Squared Error: 3,38
-	Root Mean-Squared Error: 1,84
-	Mean-Absolute Error: 1,74
+	Mean-Squared Error: 15,77
+	Root Mean-Squared Error: 3,97
+	Mean-Absolute Error: 3,37
+	Relative-Squared Error: 0,08
+	Root Relative-Squared Error: 29,09%
+	Relative-Absolute Error: 28,46%
+	Correlation Coefficient: 2
+
+
+	Mean Absolute Percentage Error: 75,23%GaussianCurveFitter (columnPredictor=2)
+
+Performance:
+	Mean-Squared Error: 159,17
+	Root Mean-Squared Error: 12,62
+	Mean-Absolute Error: 10,59
 	Relative-Squared Error: 0,85
-	Root Relative-Squared Error: 92,4%
-	Relative-Absolute Error: 91,14%
-	Correlation Coefficient: -0,6
+	Root Relative-Squared Error: 92,44%
+	Relative-Absolute Error: 89,4%
+	Correlation Coefficient: 2
 
-PolynomialRegressionJama (columnPredictor=1)
 
-Performance:
-	Mean-Squared Error: 2,83
-	Root Mean-Squared Error: 1,68
-	Mean-Absolute Error: 1,57
-	Relative-Squared Error: 0,71
-	Root Relative-Squared Error: 84,47%
-	Relative-Absolute Error: 82,53%
-	Correlation Coefficient: -0,28
-
-PolynomialRegressionJama (columnPredictor=2)
+	Mean Absolute Percentage Error: 236,45%GaussianCurveFitter (columnPredictor=3)
 
 Performance:
-	Mean-Squared Error: 2677,46
-	Root Mean-Squared Error: 51,74
-	Mean-Absolute Error: 50,67
-	Relative-Squared Error: 676,26
-	Root Relative-Squared Error: 2600,51%
-	Relative-Absolute Error: 2658,49%
-	Correlation Coefficient: 0,49
+	Mean-Squared Error: 126,95
+	Root Mean-Squared Error: 11,27
+	Mean-Absolute Error: 9,37
+	Relative-Squared Error: 0,68
+	Root Relative-Squared Error: 82,56%
+	Relative-Absolute Error: 79,1%
+	Correlation Coefficient: 2
 
-PolynomialRegressionJama (columnPredictor=4)
 
-Performance:
-	Mean-Squared Error: 79,5
-	Root Mean-Squared Error: 8,92
-	Mean-Absolute Error: 6,98
-	Relative-Squared Error: 20,08
-	Root Relative-Squared Error: 448,1%
-	Relative-Absolute Error: 366,24%
-	Correlation Coefficient: -0,18
-
-MultipleLinearRegressionJama 
+	Mean Absolute Percentage Error: 209,31%PolynomialRegressionJama (columnPredictor=0)
 
 Performance:
-	Mean-Squared Error: 1,65
-	Root Mean-Squared Error: 1,28
-	Mean-Absolute Error: 1,06
-	Relative-Squared Error: 0,42
-	Root Relative-Squared Error: 64,57%
-	Relative-Absolute Error: 55,72%
-	Correlation Coefficient: -0
+	Mean-Squared Error: 5,72
+	Root Mean-Squared Error: 2,39
+	Mean-Absolute Error: 2
+	Relative-Squared Error: 0,03
+	Root Relative-Squared Error: 17,53%
+	Relative-Absolute Error: 16,93%
+	Correlation Coefficient: 2
 
+
+	Mean Absolute Percentage Error: 43,3%PolynomialRegressionJama (columnPredictor=1)
+
+Performance:
+	Mean-Squared Error: 2,36
+	Root Mean-Squared Error: 1,54
+	Mean-Absolute Error: 1,11
+	Relative-Squared Error: 0,01
+	Root Relative-Squared Error: 11,25%
+	Relative-Absolute Error: 9,42%
+	Correlation Coefficient: 2
+
+
+	Mean Absolute Percentage Error: 25,1%PolynomialRegressionJama (columnPredictor=2)
+
+Performance:
+	Mean-Squared Error: 159,52
+	Root Mean-Squared Error: 12,63
+	Mean-Absolute Error: 10,59
+	Relative-Squared Error: 0,86
+	Root Relative-Squared Error: 92,54%
+	Relative-Absolute Error: 89,48%
+	Correlation Coefficient: 2
+
+
+	Mean Absolute Percentage Error: 236,68%PolynomialRegressionJama (columnPredictor=3)
+
+Performance:
+	Mean-Squared Error: 115,94
+	Root Mean-Squared Error: 10,77
+	Mean-Absolute Error: 9,47
+	Relative-Squared Error: 0,62
+	Root Relative-Squared Error: 78,9%
+	Relative-Absolute Error: 80,03%
+	Correlation Coefficient: 2
+
+
+	Mean Absolute Percentage Error: 211,07%MultipleLinearRegressionJama 
+
+Performance:
+	Mean-Squared Error: 9,55
+	Root Mean-Squared Error: 3,09
+	Mean-Absolute Error: 2,54
+	Relative-Squared Error: 0,05
+	Root Relative-Squared Error: 22,64%
+	Relative-Absolute Error: 21,45%
+	Correlation Coefficient: 2
+
+
+	Mean Absolute Percentage Error: 54,79%MultipleLinearRegressionJama 
+
+Performance:
+	Mean-Squared Error: 8,26
+	Root Mean-Squared Error: 2,87
+	Mean-Absolute Error: 2,66
+	Relative-Squared Error: 0,04
+	Root Relative-Squared Error: 21,06%
+	Relative-Absolute Error: 22,47%
+	Correlation Coefficient: 2
+
+
+	Mean Absolute Percentage Error: 57,81%

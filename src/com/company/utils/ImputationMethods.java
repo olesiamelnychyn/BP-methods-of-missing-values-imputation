@@ -3,6 +3,9 @@ package com.company.utils;
 import com.company.utils.regressions.*;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
+import jsat.linear.DenseMatrix;
+import jsat.linear.DenseVector;
+import jsat.linear.Matrix;
 import jsat.linear.Vec;
 import jsat.math.DescriptiveStatistics;
 import jsat.math.SimpleLinearRegression;
@@ -18,10 +21,13 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.company.utils.ColorFormatPrint.*;
 import static com.company.utils.PerformanceMeasures.*;
+import static com.company.utils.PerformanceMeasures.meanAbsolutePercentageError;
 
 public class ImputationMethods {
 	int columnPredicted;
@@ -34,10 +40,10 @@ public class ImputationMethods {
 		this.columnPredicted = columnPredicted;
 		dataset = dataSet;
 
-		this.test = DatasetManipulation.createDeepCopy(dataset, 10, 20);
-		SimpleDataSet datasetCopy = DatasetManipulation.createDeepCopy(dataset, 0, 1000);
+		this.test = DatasetManipulation.createDeepCopy(dataset, 5, 7);
+		SimpleDataSet datasetCopy = DatasetManipulation.createDeepCopy(dataset, 0, 30);
 		List<DataPoint> training = datasetCopy.getDataPoints();
-		for (int i = 10; i < 20; i++) {
+		for (int i = 5; i < 7; i++) {
 			training.remove(datasetCopy.getDataPoint(i));
 		}
 		this.training = new SimpleDataSet(training);
@@ -195,29 +201,46 @@ public class ImputationMethods {
 
 	}
 
-	public void MultipleLinearRegressionJama (int[] predictors) throws IOException {
+	private void MultipleRegressionJama (int[] predictors, boolean polynomial, int degree) throws IOException {
 		String method = "MultipleLinearRegressionJama ";
 		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
 		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(training, 0, training.getSampleSize());
 		SimpleDataSet testCopy = DatasetManipulation.createDeepCopy(test, 0, test.getSampleSize());
+
+		if (polynomial) {
+			predictors = Arrays.copyOf(predictors, predictors.length * degree);
+			for (int i = predictors.length / degree; i < predictors.length; i++) {
+				predictors[i] = i + 1;
+			}
+			trainingCopy = addPowerColumns(trainingCopy, degree, predictors);
+			testCopy = addPowerColumns(testCopy, degree, predictors);
+		}
+
 		double[][] regressionTrainingDataSet = DatasetManipulation.toArray(trainingCopy, predictors);
 		double[][] regressionTestDataSet = DatasetManipulation.toArray(testCopy, predictors);
 		MultipleLinearRegressionJama multipleLinearRegression = new MultipleLinearRegressionJama(regressionTrainingDataSet, trainingCopy.getDataMatrix().getColumn(columnPredicted).arrayCopy());
 
 		System.out.print("Coefficients: [");
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < predictors.length - 1; i++) {
 			System.out.print(multipleLinearRegression.beta(i) + ",");
 		}
-		System.out.println(multipleLinearRegression.beta(4) + "]");
+		System.out.println(multipleLinearRegression.beta(predictors.length) + "]");
 
 		for (int i = 0; i < testCopy.getSampleSize(); i++) {
 			double newValue = Double.parseDouble(df2.format(multipleLinearRegression.predict(regressionTestDataSet[i])).replace(',', '.'));
 //			System.out.println("(" + testCopy.getDataPoint(i).getNumericalValues().get(columnPredicted) + "," + newValue + ")");
 			testCopy.getDataPoint(i).getNumericalValues().set(columnPredicted, newValue);
 		}
-
 		printPerformanceMeasures(test.getDataMatrix().getColumn(columnPredicted), testCopy.getDataMatrix().getColumn(columnPredicted), trainingCopy.getDataMatrix().getColumn(columnPredicted).mean(), method);
 
+	}
+
+	public void MultipleLinearRegressionJama (int[] predictors) throws IOException {
+		MultipleRegressionJama(predictors, false, 0);
+	}
+
+	public void MultiplePolynomialRegressionJama (int[] predictors, int degree) throws IOException {
+		MultipleRegressionJama(predictors, true, degree);
 	}
 
 	public void printPerformanceMeasures (Vec test, Vec predicted, double meanTraining, String method) throws IOException {
@@ -231,11 +254,13 @@ public class ImputationMethods {
 		writer.append("\n\tRoot Relative-Squared Error: " + df2.format(rootRelativeSquaredError(test, predicted, meanTraining) * 100) + "%");
 		writer.append("\n\tRelative-Absolute Error: " + df2.format(relativeAbsoluteError(test, predicted, meanTraining) * 100) + "%");
 		writer.append("\n\tCorrelation Coefficient: " + df2.format(DescriptiveStatistics.sampleCorCoeff(test, predicted)) + "\n\n");
+		writer.append("\n\tMean Absolute Percentage Error: " + df2.format(meanAbsolutePercentageError(test, predicted) * 100) + "%");
 		writer.close();
 
 		System.out.println("Performance:");
 		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tRoot Mean-Squared Error: " + df2.format(RMSError(test, predicted)) + ANSI_RESET + ANSI_BOLD_OFF);
-		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tRelative-Absolute Error: " + df2.format(relativeAbsoluteError(test, predicted, meanTraining) * 100) + "%" + ANSI_RESET + ANSI_BOLD_OFF + "\n\n");
+		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tRelative-Absolute Error: " + df2.format(relativeAbsoluteError(test, predicted, meanTraining) * 100) + "%" + ANSI_RESET + ANSI_BOLD_OFF);
+		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tMean Absolute Percentage Error: " + df2.format(meanAbsolutePercentageError(test, predicted)) + "%" + ANSI_RESET + ANSI_BOLD_OFF + "\n\n");
 
 	}
 
@@ -255,6 +280,29 @@ public class ImputationMethods {
 		}
 
 		return val;
+	}
+
+	private SimpleDataSet addPowerColumns (SimpleDataSet dataset, int degree, int[] predictors) {
+		List<DataPoint> list = new ArrayList<>();
+		for (DataPoint dp : dataset.getDataPoints()) {
+			Vec vec = new DenseVector(predictors.length + 1);
+			vec.set(columnPredicted, dp.getNumericalValues().get(columnPredicted));
+			int next = predictors.length / degree + 1;
+			for (int i = 0; i < dataset.getDataMatrix().cols(); i++) {
+				if (i != columnPredicted) {
+					vec.set(i, dp.getNumericalValues().get(i));
+					for (int j = 2; j <= degree; j++) {
+						vec.set(next, Math.pow(dp.getNumericalValues().get(i), j));
+						next++;
+					}
+				}
+
+			}
+//			System.out.println(dp.getNumericalValues());
+//			System.out.println(vec);
+			list.add(new DataPoint(vec));
+		}
+		return new SimpleDataSet(list);
 	}
 
 	public static double gaussianValue (double[] p, double x0) {

@@ -104,4 +104,20 @@ public class PerformanceMeasures {
 
         return sumTop / sumBottom;
     }
+
+    /** Mean Absolute Percentage Error
+     *
+     * @param predicted predicted values
+     * @param actual original values
+     * @return relative-absolute error
+     */
+    static public double meanAbsolutePercentageError (Vec actual, Vec predicted) {
+        int n = actual.length();
+        double sum = 0.0;
+        for (int i = 0; i < n; i++) {
+            sum += abs(actual.get(i) - predicted.get(i)) / actual.get(i);
+        }
+
+        return sum * 100 / n;
+    }
 }

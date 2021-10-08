@@ -62,6 +62,9 @@ public class Main {
 
 		//Multiple Linear Regression from JAMA
 		imputationMethods.MultipleLinearRegressionJama(columnPredictors);
+
+		//Multiple Polynomial Regression from JAMA
+		imputationMethods.MultiplePolynomialRegressionJama(columnPredictors, 2);
 	}
 
 }
