@@ -60,52 +60,44 @@ public class ImputationMethods {
 				int index = datasetMissing.getDataPoints().indexOf(dp);
 				//the main body - decision tree
 
-				if (isLowStandardDeviation(columnPredicted, index, 4, 4)) {
-					MeanImputation(index, 4, 4);
-				} else {
+				if (!MeanImputation(index, 4, 4)) {
 					for (int columnPredictor : columnPredictors) {
 						if (!LinearRegressionJSAT(columnPredictor, index, 4, 4)) {
-							PolynomialCurveFitterApache(columnPredictor, index, 4, 4);
+							if (!PolynomialCurveFitterApache(columnPredictor, index, 4, 4)) {
+								GaussianCurveFitterApache(columnPredictor, index, 4, 4);
+							}
 						}
 					}
 				}
 			}
 		}
-
 		evaluateFinal();
 	}
 
-	private boolean isLowStandardDeviation (int columnPredicted, int indexMissing, int recordsBefore, int recordsAfter) {
-		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
-		double std = trainingCopy.getDataMatrix().getColumn(columnPredicted).standardDeviation();
-		double mean = trainingCopy.getDataMatrix().getColumn(columnPredicted).mean();
-		System.out.println(std / mean);
-		System.out.println(mean);
-		System.out.println(datasetComplete.getDataPoint(indexMissing).getNumericalValues().get(columnPredicted));
-		if (std / mean <= 0.3) {
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	public void MeanImputation (int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
+	public boolean MeanImputation (int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
 		String method = "MeanImputation";
 		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
 		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
 
+		double std = trainingCopy.getDataMatrix().getColumn(columnPredicted).standardDeviation();
 		double mean = trainingCopy.getDataMatrix().getColumn(columnPredicted).mean();
+		if (std / mean <= 0.3) {
+			return false;
+		}
+
 		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET + "\nMean: [" + mean + "]");
 		toBePredicted.getNumericalValues().set(columnPredicted, mean);
 
 		if (datasetComplete != null) {
 			System.out.println(datasetComplete.getDataPoint(indexMissing).getNumericalValues().get(columnPredicted) + " " + toBePredicted.getNumericalValues().get(columnPredicted) + " " + trainingCopy.getDataMatrix().getColumn(columnPredicted).mean());
-			printPerformanceMeasures(datasetComplete.getDataPoint(indexMissing), toBePredicted, trainingCopy.getDataMatrix().getColumn(columnPredicted).mean(), method);
+			if (printPerformanceMeasures(datasetComplete.getDataPoint(indexMissing), toBePredicted, trainingCopy.getDataMatrix().getColumn(columnPredicted).mean(), method) > 15) {
+				return false;
+			}
 		}
 
 		listPredicted.add(toBePredicted);
 		listActual.add(datasetComplete.getDataPoint(indexMissing));
-
+		return true;
 	}
 
 	public boolean LinearRegressionJSAT (int columnPredictor, int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
@@ -196,12 +188,12 @@ public class ImputationMethods {
 		return true;
 	}
 
-	public void GaussianCurveFitterApache (int columnPredictor) throws IOException {
+	public boolean GaussianCurveFitterApache (int columnPredictor, int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
 		String method = "GaussianCurveFitter (columnPredictor=" + columnPredictor + ")";
 		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
 		final WeightedObservedPoints obs = new WeightedObservedPoints();
-		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(training, 0, training.getSampleSize());
-		SimpleDataSet testCopy = DatasetManipulation.createDeepCopy(test, 0, test.getSampleSize());
+		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
+		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
 		final GaussianCurveFitter fitter = GaussianCurveFitter.create();
 
 		for (DataPoint dp : trainingCopy.getDataPoints()) {
@@ -216,16 +208,19 @@ public class ImputationMethods {
 		}
 		System.out.println(coeff[coeff.length - 1] + "]");
 
-		for (DataPoint dp : testCopy.getDataPoints()) {
-			double newValue = Double.parseDouble(df2.format(gaussianValue(coeff, dp.getNumericalValues().get(columnPredictor))).replace(',', '.'));
-//			System.out.println("(" + dp.getNumericalValues().get(columnPredicted) + "," + newValue + ")");
-			dp.getNumericalValues().set(columnPredicted, newValue);
-		}
+		double newValue = Double.parseDouble(df2.format(gaussianValue(coeff, toBePredicted.getNumericalValues().get(columnPredictor))).replace(',', '.'));
+		toBePredicted.getNumericalValues().set(columnPredicted, newValue);
 
 		if (datasetComplete != null) {
-			printPerformanceMeasures(test.getDataMatrix().getColumn(columnPredicted), testCopy.getDataMatrix().getColumn(columnPredicted), trainingCopy.getDataMatrix().getColumn(columnPredicted).mean(), method);
+			System.out.println(datasetComplete.getDataPoint(indexMissing).getNumericalValues().get(columnPredicted) + " " + toBePredicted.getNumericalValues().get(columnPredicted) + " " + trainingCopy.getDataMatrix().getColumn(columnPredicted).mean());
+			if (printPerformanceMeasures(datasetComplete.getDataPoint(indexMissing), toBePredicted, trainingCopy.getDataMatrix().getColumn(columnPredicted).mean(), method) > 15) {
+				return false;
+			}
 		}
 
+		listPredicted.add(toBePredicted);
+		listActual.add(datasetComplete.getDataPoint(indexMissing));
+		return true;
 	}
 
 	public void LinearInterpolatorApache (int columnPredictor) throws IOException {
