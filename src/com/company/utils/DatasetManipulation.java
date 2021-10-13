@@ -5,7 +5,7 @@ import jsat.classifiers.DataPoint;
 import jsat.io.CSV;
 import jsat.math.DescriptiveStatistics;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -13,14 +13,53 @@ import java.util.List;
 
 public class DatasetManipulation {
 
-    static public SimpleDataSet readDataset (String fileName) throws IOException {
+    private static String encodeMissingness (String filename) throws IOException {
+        BufferedReader br = new BufferedReader(new FileReader(filename));
+        filename = filename.replace(".csv", "_NULL.csv");
+
+        BufferedWriter bw = new BufferedWriter(new FileWriter(filename));
+
+        String line = "";
+        while ((line = br.readLine()) != null) {
+            String toWrite = "";
+            String[] values = line.split(",", -1);
+
+            ArrayList<String> arrayList = new ArrayList();
+            for (String value : values) {
+                if ("null".equalsIgnoreCase(value) || "?".equals(value) || ("na").equalsIgnoreCase(value) || ("nan").equalsIgnoreCase(value) || value.length() == 0) {
+                    arrayList.add("");
+                } else {
+                    arrayList.add(value);
+                }
+            }
+
+            for (String s : arrayList) {
+                toWrite += s + ",";
+            }
+            toWrite = toWrite.substring(0, toWrite.length() - 1);
+            bw.write(toWrite + "\n");
+        }
+
+        br.close();
+        bw.close();
+        return filename;
+    }
+
+    static public SimpleDataSet readDataset (String fileName, boolean containMissing) throws IOException {
+        if (containMissing) {
+            fileName = encodeMissingness(fileName);
+        }
+
         SimpleDataSet simpleDataSet = CSV.read(Paths.get(fileName), ',', 0, ' ', new HashSet());
         List<DataPoint> list = new ArrayList<>();
+        int nans = 0;
         for (DataPoint dp : simpleDataSet.getDataPoints()) {
-            if (dp.getNumericalValues().countNaNs() == 0) {
-                list.add(dp);
+            if (dp.getNumericalValues().countNaNs() != 0) {
+                nans++;
             }
+            list.add(dp);
         }
+        System.out.println("Number of missing values: " + nans);
         return new SimpleDataSet(list);
     }
 
@@ -29,6 +68,19 @@ public class DatasetManipulation {
         ll.add(dataset.getDataPoint(from++).clone());
         SimpleDataSet datasetCopy = new SimpleDataSet(ll);
         for (DataPoint obj : dataset.getDataPoints().subList(from, to)) {
+            datasetCopy.add(obj.clone());
+        }
+        return datasetCopy;
+    }
+
+    static public SimpleDataSet createDeepCopy (SimpleDataSet dataset, int from1, int to1, int from2, int to2) {
+        List<DataPoint> ll = new ArrayList<>();
+        ll.add(dataset.getDataPoint(from1++).clone());
+        SimpleDataSet datasetCopy = new SimpleDataSet(ll);
+        for (DataPoint obj : dataset.getDataPoints().subList(from1, to1)) {
+            datasetCopy.add(obj.clone());
+        }
+        for (DataPoint obj : dataset.getDataPoints().subList(from2, to2)) {
             datasetCopy.add(obj.clone());
         }
         return datasetCopy;
@@ -46,6 +98,12 @@ public class DatasetManipulation {
             i++;
         }
         return array;
+    }
+
+    static public void printDataset (SimpleDataSet dataSet) {
+        for (DataPoint dp : dataSet.getDataPoints()) {
+            System.out.println(dp.getNumericalValues());
+        }
     }
 
     static public void printStatistics (SimpleDataSet dataset, int columnPredictor, int columnPredicted) {
