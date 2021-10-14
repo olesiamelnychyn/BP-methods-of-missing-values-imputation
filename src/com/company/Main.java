@@ -4,7 +4,6 @@ import com.company.utils.DatasetManipulation;
 import com.company.utils.ImputationMethods;
 import jsat.SimpleDataSet;
 import jsat.io.CSV;
-
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -27,35 +26,6 @@ public class Main {
 
 		imputationMethods.impute();
 		writeOutput(input.datasetMissing);
-//
-//		//Multiple Linear Regression from JSAT
-//		imputationMethods.MultipleLinearRegressionJSAT();
-//
-//		//Polynomial Curve Fitter
-//		for (int columnPredictor : input.columnPredictors) {
-//			imputationMethods.PolynomialCurveFitterApache(columnPredictor);
-//		}
-//
-////		Gaussian Curve Fitter - takes some time
-//		for (int columnPredictor : input.columnPredictors) {
-//			imputationMethods.GaussianCurveFitterApache(columnPredictor);
-//		}
-//
-//		Linear Interpolator - values must be strictly increasing
-//		for(int columnPredictor : columnPredictors){
-//			imputationMethods.LinearInterpolatorApache(columnPredictor);
-//		}
-//
-//		Polynomial Regression from JAMA
-//		for (int columnPredictor : input.columnPredictors) {
-//			imputationMethods.PolynomialRegressionJama(columnPredictor);
-//		}
-//
-//		//Multiple Linear Regression from JAMA
-//		imputationMethods.MultipleLinearRegressionJama(input.columnPredictors);
-//
-//		//Multiple Polynomial Regression from JAMA
-//		imputationMethods.MultiplePolynomialRegressionJama(input.columnPredictors, 2);
 	}
 
 	private static class Input {
@@ -110,12 +80,12 @@ public class Main {
 		if (j == 0) {
 			throw new InvalidObjectException("There is no predictors!");
 		}
-		System.out.println(j);
+//		System.out.println(j);
 		input.columnPredictors = Arrays.copyOfRange(input.columnPredictors, 0, j);
 
-		for (int predictor : input.columnPredictors) {
-			System.out.println(predictor);
-		}
+//		for (int predictor : input.columnPredictors) {
+//			System.out.println(predictor);
+//		}
 //		int k = 0;
 //		for (int i = 0; i < datasetComplete.getDataMatrix().cols() - 1; i++) {
 //			if (k != columnPredicted) {

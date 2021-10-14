@@ -3,6 +3,8 @@ package com.company.utils;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.io.CSV;
+import jsat.linear.DenseVector;
+import jsat.linear.Vec;
 import jsat.math.DescriptiveStatistics;
 
 import java.io.*;
@@ -104,6 +106,71 @@ public class DatasetManipulation {
         for (DataPoint dp : dataSet.getDataPoints()) {
             System.out.println(dp.getNumericalValues());
         }
+    }
+
+    static public boolean isStrictlyIncreasing (SimpleDataSet dataSet, int columnPredicted) {
+        double current = dataSet.getDataPoint(0).getNumericalValues().get(columnPredicted);
+        for (int i = 1; i < dataSet.getSampleSize(); i++) {
+            if (dataSet.getDataPoint(i).getNumericalValues().get(columnPredicted) < current) {
+                return false;
+            }
+            current = dataSet.getDataPoint(i).getNumericalValues().get(columnPredicted);
+        }
+        return true;
+    }
+
+    static public boolean isStrictlyDecreasing (SimpleDataSet dataSet, int columnPredicted) {
+        double current = dataSet.getDataPoint(0).getNumericalValues().get(columnPredicted);
+        for (int i = 1; i < dataSet.getSampleSize(); i++) {
+            if (dataSet.getDataPoint(i).getNumericalValues().get(columnPredicted) > current) {
+                return false;
+            }
+            current = dataSet.getDataPoint(i).getNumericalValues().get(columnPredicted);
+        }
+        return true;
+    }
+
+    static public SimpleDataSet reverseDataset (SimpleDataSet dataSet) {
+        ArrayList<DataPoint> list = new ArrayList<>();
+        for (int i = dataSet.getSampleSize() - 1; i >= 0; i--) {
+            list.add(dataSet.getDataPoint(i));
+        }
+        return new SimpleDataSet(list);
+    }
+
+    public static SimpleDataSet addPowerColumns (SimpleDataSet dataset, int degree, int[] predictors, int columnPredicted) {
+        List<DataPoint> list = new ArrayList<>();
+        for (DataPoint dp : dataset.getDataPoints()) {
+            Vec vec = new DenseVector(predictors.length + 1);
+            vec.set(columnPredicted, dp.getNumericalValues().get(columnPredicted));
+            int next = predictors.length / degree + 1;
+            for (int i = 0; i < dataset.getDataMatrix().cols(); i++) {
+                if (i != columnPredicted) {
+                    vec.set(i, dp.getNumericalValues().get(i));
+                    for (int j = 2; j <= degree; j++) {
+                        vec.set(next, Math.pow(dp.getNumericalValues().get(i), j));
+                        next++;
+                    }
+                }
+            }
+
+            list.add(new DataPoint(vec));
+        }
+        return new SimpleDataSet(list);
+    }
+
+    public static SimpleDataSet excludeNonPredictors (SimpleDataSet dataset, int[] predictors, int columnPredicted) {
+        List<DataPoint> list = new ArrayList<>();
+        for (DataPoint dp : dataset.getDataPoints()) {
+            Vec vec = new DenseVector(predictors.length + 1);
+            vec.set(0, dp.getNumericalValues().get(columnPredicted));
+            int nextIndex = 1;
+            for (int column : predictors) {
+                vec.set(nextIndex++, dp.getNumericalValues().get(column));
+            }
+            list.add(new DataPoint(vec));
+        }
+        return new SimpleDataSet(list);
     }
 
     static public void printStatistics (SimpleDataSet dataset, int columnPredictor, int columnPredicted) {
