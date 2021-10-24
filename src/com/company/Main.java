@@ -19,7 +19,7 @@ public class Main {
 		Input input = readInput();
 		ImputationMethods imputationMethods = new ImputationMethods(input.columnPredicted, input.columnPredictors, input.datasetComplete, input.datasetMissing);
 
-		String str = "Results:\n\n";
+		String str = "Results:\n";
 		BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt"));
 		writer.write(str);
 		writer.close();
@@ -100,10 +100,12 @@ public class Main {
 
 	private static void writeOutput (SimpleDataSet dataset) throws IOException {
 		Scanner scanner = new Scanner(System.in);
-		System.out.println("Enter filename of the output file (type \"1\" to use test filename)");
+		System.out.println("Enter filename of the output file (type \"1\" to use test filename, type \"0\" to skip saving)");
 		String in = scanner.nextLine();
 		if ("1".equals(in)) {
 			CSV.write(dataset, Paths.get("src/com/company/data/imputed.csv"), ',');
+		} else if ("0".equals(in) || in.isEmpty()) {
+			return;
 		} else {
 			CSV.write(dataset, Paths.get(scanner.nextLine()), ',');
 		}

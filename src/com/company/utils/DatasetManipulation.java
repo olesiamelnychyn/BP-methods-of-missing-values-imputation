@@ -7,6 +7,9 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.DescriptiveStatistics;
 
+import static java.lang.Math.*;
+import static jsat.linear.distancemetrics.PearsonDistance.correlation;
+
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -130,6 +133,62 @@ public class DatasetManipulation {
         return true;
     }
 
+    static public boolean isCloseToMean (SimpleDataSet dataSet, int columnPredicted) {
+        double std = dataSet.getDataMatrix().getColumn(columnPredicted).standardDeviation();
+        double mean = dataSet.getDataMatrix().getColumn(columnPredicted).mean();
+//        System.out.println(std + " " + mean + " " + std / mean);
+        if (std / mean <= 0.35) {
+            return true;
+        }
+        return false;
+    }
+
+    static public boolean isCloseToMedian (SimpleDataSet dataSet, int columnPredicted) {
+        double dist = 0.0;
+        double median = dataSet.getDataMatrix().getColumn(columnPredicted).median();
+        for (DataPoint dp : dataSet.getDataPoints()) {
+            dist += abs(dp.getNumericalValues().get(columnPredicted) - median);
+        }
+//        System.out.println(dist + " " + median + " " + dist / 8 / median);
+        if (dist / 8 / median <= 0.2) {
+            return true;
+        }
+        return false;
+    }
+
+    static public boolean hasLinearRelationship (SimpleDataSet dataSet, int columnPredicted, int columnPredictor) {
+        int[] col = new int[]{
+                columnPredicted, columnPredictor
+        };
+        double corr = correlation(dataSet.getNumericColumn(columnPredicted), dataSet.getNumericColumn(columnPredictor), true);
+        System.out.println(corr);
+        if (abs(corr) < 0.4) {
+            return false;
+        }
+        return true;
+    }
+
+    static public int getPolynomialOrder (SimpleDataSet dataSet, int columnPredicted, int columnPredictor) {
+        int n = dataSet.getSampleSize();
+        double[][] powPred = new double[4][n];
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < n; j++) {
+                double x = dataSet.getDataPoint(i).getNumericalValues().get(columnPredictor);
+                powPred[i][j] = getPoly(x, i);
+            }
+        }
+        double[] corr = new double[4];
+        for (int i = 0; i < 4; i++) {
+            corr[i] = correlation(dataSet.getNumericColumn(columnPredicted), new DenseVector(powPred[i]), true);
+        }
+        int iMax = getMax(corr);
+        System.out.println(corr[iMax] + " " + iMax);
+        if (abs(corr[iMax]) < 0.3) {
+            return iMax + 1;
+        }
+        return -1;
+    }
+
     static public SimpleDataSet reverseDataset (SimpleDataSet dataSet) {
         ArrayList<DataPoint> list = new ArrayList<>();
         for (int i = dataSet.getSampleSize() - 1; i >= 0; i--) {
@@ -177,5 +236,25 @@ public class DatasetManipulation {
         System.out.println("Statistics:\n\tStandard deviation of predictor: " + dataset.getDataMatrix().getColumn(columnPredictor).standardDeviation());
         System.out.println("\tStandard deviation of predicted: " + dataset.getDataMatrix().getColumn(columnPredicted).standardDeviation());
         System.out.println("\tCorrelation Coefficient: " + DescriptiveStatistics.sampleCorCoeff(dataset.getDataMatrix().getColumn(columnPredictor), dataset.getDataMatrix().getColumn(columnPredicted)) + "\n");
+    }
+
+    static private double getPoly (double x, int power) {
+        double y = 0.0;
+        for (int i = 0; i < power; i++) {
+            y += pow(x, i);
+        }
+        return y;
+    }
+
+    static private int getMax (double[] x) {
+        int index = 0;
+        double max = x[0];
+        for (int i = 1; i < x.length; i++) {
+            if (x[i] > max) {
+                max = x[i];
+                index = i;
+            }
+        }
+        return index;
     }
 }

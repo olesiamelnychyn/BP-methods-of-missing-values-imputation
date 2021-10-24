@@ -32,7 +32,7 @@ public class ImputationMethods {
 	SimpleDataSet datasetMissing;
 	ArrayList<DataPoint> listPredicted = new ArrayList<>();
 	ArrayList<DataPoint> listActual = new ArrayList<>();
-	DecimalFormat df2 = new DecimalFormat("#.##");
+	static DecimalFormat df2 = new DecimalFormat("#.##");
 
 	public ImputationMethods (int columnPredicted, int[] columnPredictors, SimpleDataSet datasetComplete, SimpleDataSet datasetMissing) {
 		this.columnPredicted = columnPredicted;
@@ -59,15 +59,22 @@ public class ImputationMethods {
 						}
 					}
 				} else {
-					if (!MeanImputation(index, 4, 4)) {
-						if (!LinearInterpolatorApache(columnPredictors[0], index, 2, 2)) {
-							if (!LinearRegressionJSAT(columnPredictors[0], index, 4, 4)) {
-								if (!PolynomialCurveFitterApache(columnPredictors[0], index, 4, 4)) {
-									if (!PolynomialRegressionJama(columnPredictors[0], index, 4, 4)) {
-										GaussianCurveFitterApache(columnPredictors[0], index, 4, 4);
-									}
-								}
-							}
+					if (DatasetManipulation.isCloseToMean(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted)) {
+						MeanImputation(index, 4, 4);
+					} else if (DatasetManipulation.isCloseToMedian(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted)) {
+						MedianImputation(index, 4, 4);
+					} else if (DatasetManipulation.isStrictlyIncreasing(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted)) {
+						LinearInterpolatorApache(columnPredictors[0], index, 2, 2, true);
+					} else if (DatasetManipulation.isStrictlyDecreasing(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted)) {
+						LinearInterpolatorApache(columnPredictors[0], index, 2, 2, false);
+					} else if (DatasetManipulation.hasLinearRelationship(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted, columnPredictors[0])) {
+						LinearRegressionJSAT(columnPredictors[0], index, 4, 4);
+					} else {
+						int order = DatasetManipulation.getPolynomialOrder(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted, columnPredictors[0]);
+						if (order != -1) {
+							PolynomialCurveFitterApache(columnPredictors[0], index, 4, 4, order);
+						} else {
+							GaussianCurveFitterApache(columnPredictors[0], index, 4, 4);
 						}
 					}
 				}
@@ -77,18 +84,27 @@ public class ImputationMethods {
 	}
 
 	public boolean MeanImputation (int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
-		String method = "MeanImputation";
+
 		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
 		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
 
-		double std = trainingCopy.getDataMatrix().getColumn(columnPredicted).standardDeviation();
 		double mean = trainingCopy.getDataMatrix().getColumn(columnPredicted).mean();
-		if (std / mean <= 0.3) {
-			return false;
-		}
-
+		String method = "Mean Imputation";
 		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET + "\nMean: [" + mean + "]");
 		toBePredicted.getNumericalValues().set(columnPredicted, mean);
+
+		return evaluate_concat(indexMissing, toBePredicted, trainingCopy, method);
+	}
+
+	public boolean MedianImputation (int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
+
+		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
+		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
+
+		double median = trainingCopy.getDataMatrix().getColumn(columnPredicted).median();
+		String method = "Median Imputation";
+		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET + "\nMedian: [" + median + "]");
+		toBePredicted.getNumericalValues().set(columnPredicted, median);
 
 		return evaluate_concat(indexMissing, toBePredicted, trainingCopy, method);
 	}
@@ -132,13 +148,13 @@ public class ImputationMethods {
 		return evaluate_concat(indexMissing, toBePredicted, trainingCopy_complete, method);
 	}
 
-	private boolean PolynomialCurveFitterApache (int columnPredictor, int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
+	private boolean PolynomialCurveFitterApache (int columnPredictor, int indexMissing, int recordsBefore, int recordsAfter, int order) throws IOException {
 		String method = "PolynomialCurveFitter (columnPredictor=" + columnPredictor + ")";
 		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
 		final WeightedObservedPoints obs = new WeightedObservedPoints();
 		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
 		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
-		final PolynomialCurveFitter fitter = PolynomialCurveFitter.create(3);
+		final PolynomialCurveFitter fitter = PolynomialCurveFitter.create(order);
 
 		for (DataPoint dp : trainingCopy.getDataPoints()) {
 			obs.add(dp.getNumericalValues().get(columnPredictor), dp.getNumericalValues().get(columnPredicted));
@@ -183,19 +199,14 @@ public class ImputationMethods {
 		return evaluate_concat(indexMissing, toBePredicted, trainingCopy, method);
 	}
 
-	public boolean LinearInterpolatorApache (int columnPredictor, int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
+	public boolean LinearInterpolatorApache (int columnPredictor, int indexMissing, int recordsBefore, int recordsAfter, boolean increasing) throws IOException {
 		String method = "PolynomialCurveFitter (columnPredictor=" + columnPredictor + ")";
 		System.out.println("\n" + ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
 		LinearInterpolator linearInterpolator = new LinearInterpolator();
 		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
 		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
 
-		boolean increasing = DatasetManipulation.isStrictlyIncreasing(trainingCopy, columnPredicted);
-		boolean decreasing = DatasetManipulation.isStrictlyDecreasing(trainingCopy, columnPredicted);
-		if (!(decreasing || increasing)) {
-			System.out.println("Values in predicted column are neither strictly increasing, nor decreasing!");
-			return false;
-		} else if (decreasing) {
+		if (!increasing) {
 			trainingCopy = DatasetManipulation.reverseDataset(trainingCopy);
 		}
 
@@ -285,22 +296,16 @@ public class ImputationMethods {
 	}
 
 	private void printPerformanceMeasures (Vec test, Vec predicted, double meanTraining, String method) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt", true));
-		writer.append(method);
-		writer.append("\n\nPerformance:");
-		writer.append("\n\tMean-Squared Error: " + df2.format(MSError(test, predicted)));
-		writer.append("\n\tRoot Mean-Squared Error: " + df2.format(RMSError(test, predicted)));
-		writer.append("\n\tMean-Absolute Error: " + df2.format(meanAbsoluteError(test, predicted)));
-		writer.append("\n\tRelative-Squared Error: " + df2.format(relativeSquaredError(test, predicted, meanTraining)));
-		writer.append("\n\tRoot Relative-Squared Error: " + df2.format(rootRelativeSquaredError(test, predicted, meanTraining) * 100) + "%");
-		writer.append("\n\tRelative-Absolute Error: " + df2.format(relativeAbsoluteError(test, predicted, meanTraining) * 100) + "%");
-		writer.append("\n\tCorrelation Coefficient: " + df2.format(DescriptiveStatistics.sampleCorCoeff(test, predicted)) + "\n\n");
-		writer.append("\n\tMean Absolute Percentage Error: " + df2.format(meanAbsolutePercentageError(test, predicted) * 100) + "%");
-		writer.close();
+		writeOutput(test, predicted, meanTraining, method, true);
 
 		System.out.println("Performance:");
+		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tMean-Squared Error: " + df2.format(MSError(test, predicted)) + ANSI_RESET + ANSI_BOLD_OFF);
 		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tRoot Mean-Squared Error: " + df2.format(RMSError(test, predicted)) + ANSI_RESET + ANSI_BOLD_OFF);
+		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tMean-Absolute Error: " + df2.format(meanAbsoluteError(test, predicted)) + ANSI_RESET + ANSI_BOLD_OFF);
+		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tRelative-Squared Error: " + df2.format(relativeSquaredError(test, predicted, meanTraining)) + ANSI_RESET + ANSI_BOLD_OFF);
+		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tRoot Relative-Squared Error: " + df2.format(rootRelativeSquaredError(test, predicted, meanTraining) * 100) + "%" + ANSI_RESET + ANSI_BOLD_OFF);
 		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tRelative-Absolute Error: " + df2.format(relativeAbsoluteError(test, predicted, meanTraining) * 100) + "%" + ANSI_RESET + ANSI_BOLD_OFF);
+		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tCorrelation Coefficient: " + df2.format(DescriptiveStatistics.sampleCorCoeff(test, predicted)) + ANSI_RESET + ANSI_BOLD_OFF);
 		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tMean Absolute Percentage Error: " + df2.format(meanAbsolutePercentageError(test, predicted)) + "%" + ANSI_RESET + ANSI_BOLD_OFF + "\n\n");
 
 	}
@@ -313,19 +318,7 @@ public class ImputationMethods {
 		double[] pred1 = new double[1];
 		pred1[0] = pred.getNumericalValues().get(columnPredicted);
 		Vec predicted = new DenseVector(pred1);
-
-		BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt", true));
-		writer.append(method);
-		writer.append("\n\nPerformance:");
-		writer.append("\n\tMean-Squared Error: " + df2.format(MSError(test, predicted)));
-		writer.append("\n\tRoot Mean-Squared Error: " + df2.format(RMSError(test, predicted)));
-		writer.append("\n\tMean-Absolute Error: " + df2.format(meanAbsoluteError(test, predicted)));
-		writer.append("\n\tRelative-Squared Error: " + df2.format(relativeSquaredError(test, predicted, meanTraining)));
-		writer.append("\n\tRoot Relative-Squared Error: " + df2.format(rootRelativeSquaredError(test, predicted, meanTraining) * 100) + "%");
-		writer.append("\n\tRelative-Absolute Error: " + df2.format(relativeAbsoluteError(test, predicted, meanTraining) * 100) + "%");
-		writer.append("\n\tCorrelation Coefficient: " + df2.format(DescriptiveStatistics.sampleCorCoeff(test, predicted)) + "\n\n");
-		writer.append("\n\tMean Absolute Percentage Error: " + df2.format(meanAbsolutePercentageError(test, predicted) * 100) + "%");
-		writer.close();
+		writeOutput(test, predicted, meanTraining, method, false);
 
 //		System.out.println("Performance:");
 //		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tRoot Mean-Squared Error: " + df2.format(RMSError(test, predicted)) + ANSI_RESET + ANSI_BOLD_OFF);
@@ -333,6 +326,23 @@ public class ImputationMethods {
 		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tMean Absolute Percentage Error: " + df2.format(meanAbsolutePercentageError(test, predicted)) + "%" + ANSI_RESET + ANSI_BOLD_OFF + "\n\n");
 
 		return meanAbsolutePercentageError(test, predicted);
+	}
+
+	static private void writeOutput (Vec test, Vec predicted, double meanTraining, String method, boolean all) throws IOException {
+		BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt", true));
+		writer.append("\n\n" + method);
+		writer.append("\nPerformance:");
+		writer.append("\n\tRoot Mean-Squared Error: " + df2.format(RMSError(test, predicted)));
+		writer.append("\n\tRelative-Absolute Error: " + df2.format(relativeAbsoluteError(test, predicted, meanTraining) * 100) + "%");
+		if (all) {
+			writer.append("\n\tMean-Squared Error: " + df2.format(MSError(test, predicted)));
+			writer.append("\n\tMean-Absolute Error: " + df2.format(meanAbsoluteError(test, predicted)));
+			writer.append("\n\tRelative-Squared Error: " + df2.format(relativeSquaredError(test, predicted, meanTraining)));
+			writer.append("\n\tRoot Relative-Squared Error: " + df2.format(rootRelativeSquaredError(test, predicted, meanTraining) * 100) + "%");
+			writer.append("\n\tCorrelation Coefficient: " + df2.format(DescriptiveStatistics.sampleCorCoeff(test, predicted)));
+		}
+		writer.append("\n\tMean Absolute Percentage Error: " + df2.format(meanAbsolutePercentageError(test, predicted)) + "%" + "\n");
+		writer.close();
 	}
 
 	private boolean evaluate_concat (int indexMissing, DataPoint toBePredicted, SimpleDataSet trainingCopy, String method) throws IOException {
