@@ -10,6 +10,11 @@ import jsat.math.DescriptiveStatistics;
 import static java.lang.Math.*;
 import static jsat.linear.distancemetrics.PearsonDistance.correlation;
 
+import org.apache.commons.math3.linear.BlockRealMatrix;
+import org.apache.commons.math3.linear.RealMatrix;
+import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
+import org.apache.commons.math3.linear.LUDecomposition;
+
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -163,6 +168,37 @@ public class DatasetManipulation {
         double corr = correlation(dataSet.getNumericColumn(columnPredicted), dataSet.getNumericColumn(columnPredictor), true);
         System.out.println(corr);
         if (abs(corr) < 0.4) {
+            return false;
+        }
+        return true;
+    }
+
+    static public boolean hasLinearRelationship (SimpleDataSet dataSet, int columnPredicted, int[] columnPredictor) {
+
+        int col = columnPredictor.length + 1;
+
+        //count c^T
+        RealMatrix mat = new BlockRealMatrix(dataSet.getSampleSize(), columnPredictor.length + 1);
+        for (int i = 0; i < col - 1; i++) {
+            mat.setColumn(i, dataSet.getDataMatrix().getColumn(columnPredictor[i]).arrayCopy());
+        }
+        mat.setColumn(col - 1, dataSet.getDataMatrix().getColumn(columnPredicted).arrayCopy());
+        PearsonsCorrelation corr = new PearsonsCorrelation(mat);
+        RealMatrix vector = corr.getCorrelationMatrix().getSubMatrix(col - 1, col - 1, 0, corr.getCorrelationMatrix().getColumnDimension() - 2);
+
+        // count Rxx
+        RealMatrix mat1 = new BlockRealMatrix(dataSet.getSampleSize(), columnPredictor.length);
+        for (int i = 0; i < columnPredictor.length; i++) {
+            mat1.setColumn(i, dataSet.getDataMatrix().getColumn(columnPredictor[i]).arrayCopy());
+        }
+        PearsonsCorrelation corr1 = new PearsonsCorrelation(mat1);
+        RealMatrix rxx = corr1.getCorrelationMatrix().scalarMultiply(1 / new LUDecomposition(corr1.getCorrelationMatrix()).getDeterminant());
+
+
+        RealMatrix a = vector.multiply(vector.transpose());
+        RealMatrix b = vector.multiply(rxx).multiply(vector.transpose());
+
+        if (a.getEntry(0, 0) / b.getEntry(0, 0) > 0.45) {
             return false;
         }
         return true;

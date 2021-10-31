@@ -49,14 +49,14 @@ public class ImputationMethods {
 				int index = datasetMissing.getDataPoints().indexOf(dp);
 
 				if (columnPredictors.length > 1) {
-					if (!MultipleLinearRegressionJama(index, 4, 4)) {
-						if (!MultipleLinearRegressionJSAT(index, 4, 4)) {
-							if (!MultiplePolynomialRegressionJama(index, 6, 6, 4)) {
-								if (!MultiplePolynomialRegressionJama(index, 6, 6, 3)) {
-									MultiplePolynomialRegressionJama(index, 4, 4, 2);
-								}
-							}
-						}
+					if (DatasetManipulation.hasLinearRelationship(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted, columnPredictors)) {
+						MultipleLinearRegressionJama(index, 4, 4);
+					} else {
+//						if (!MultiplePolynomialRegressionJama(index, 6, 6, 4)) {
+//							if (!MultiplePolynomialRegressionJama(index, 6, 6, 3)) {
+						MultiplePolynomialRegressionJama(index, 4, 4, 2);
+//							}
+//						}
 					}
 				} else {
 					if (DatasetManipulation.isCloseToMean(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted)) {
