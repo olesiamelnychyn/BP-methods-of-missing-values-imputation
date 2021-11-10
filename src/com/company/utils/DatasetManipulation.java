@@ -220,9 +220,9 @@ public class DatasetManipulation {
         int iMax = getMax(corr);
         System.out.println(corr[iMax] + " " + iMax);
         if (abs(corr[iMax]) < 0.3) {
-            return iMax + 1;
+            return -1;
         }
-        return -1;
+        return iMax + 1;
     }
 
     static public SimpleDataSet reverseDataset (SimpleDataSet dataSet) {
@@ -292,5 +292,20 @@ public class DatasetManipulation {
             }
         }
         return index;
+    }
+
+    static public int[] getIndexesOfNull (DataPoint dp) {
+        Vec vec = dp.getNumericalValues();
+        if (vec.countNaNs() == 0) {
+            return new int[0];
+        }
+        int[] indexes = new int[vec.countNaNs()];
+        int j = 0;
+        for (int i = 0; i < vec.length(); i++) {
+            if (Double.isNaN(vec.get(i))) {
+                indexes[j++] = i;
+            }
+        }
+        return indexes;
     }
 }

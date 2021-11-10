@@ -20,11 +20,12 @@ public class Main {
 		ImputationMethods imputationMethods = new ImputationMethods(input.columnPredicted, input.columnPredictors, input.datasetComplete, input.datasetMissing);
 
 		String str = "Results:\n";
+		System.out.println("\n\n" + str);
 		BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt"));
 		writer.write(str);
 		writer.close();
 
-		imputationMethods.impute();
+		imputationMethods.runImputation(input.columnPredicted);
 		writeOutput(input.datasetMissing);
 	}
 
@@ -59,7 +60,7 @@ public class Main {
 			input.datasetMissing = DatasetManipulation.readDataset(scanner.nextLine(), true);
 		}
 
-		System.out.println("Enter index of the column to be predicted (starting from 0)");
+		System.out.println("Enter index of the column to be predicted (starting from 0) (type -1 to impute all dependent values)");
 		input.columnPredicted = Integer.valueOf(scanner.nextLine());
 		if (input.columnPredicted >= input.datasetComplete.getDataMatrix().cols()) {
 			throw new IndexOutOfBoundsException("Index of predicted column is out of range");
