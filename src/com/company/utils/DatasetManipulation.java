@@ -18,6 +18,7 @@ import org.apache.commons.math3.linear.LUDecomposition;
 import java.io.*;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -92,6 +93,44 @@ public class DatasetManipulation {
         }
         for (DataPoint obj : dataset.getDataPoints().subList(from2, to2)) {
             datasetCopy.add(obj.clone());
+        }
+        return datasetCopy;
+    }
+
+    static public SimpleDataSet createDeepCopyAroundIndex (SimpleDataSet dataset, int index, int columnPredicted, int[] columnPredictors) {
+        List<DataPoint> ll = new ArrayList<>();
+        int firstIndex = index - 4;
+        SimpleDataSet datasetCopy = null;
+        int nTraining = 0;
+        if (firstIndex != -4) {
+            if (firstIndex < 0) {
+                firstIndex = 0;
+            }
+            System.out.print(firstIndex + " ");
+            ll.add(dataset.getDataPoint(firstIndex).clone());
+            nTraining++;
+            datasetCopy = new SimpleDataSet(ll);
+            for (DataPoint obj : dataset.getDataPoints().subList(firstIndex + 1, index)) {
+                datasetCopy.add(obj.clone());
+                nTraining++;
+                System.out.print(dataset.getDataPoints().indexOf(obj) + " ");
+            }
+        }
+
+        int n = dataset.getSampleSize();
+        for (int i = index + 1; i < n && nTraining < 8; i++) {
+            DataPoint obj = dataset.getDataPoint(i);
+            if (!Double.isNaN(obj.getNumericalValues().get(columnPredicted)) && getIntersection(getIndexesOfNull(obj), columnPredictors).length == 0) {
+                if (datasetCopy == null) {
+                    ll.add(obj.clone());
+                    datasetCopy = new SimpleDataSet(ll);
+                } else {
+                    datasetCopy.add(obj.clone());
+                }
+                nTraining++;
+                System.out.print(i + " ");
+
+            }
         }
         return datasetCopy;
     }
@@ -307,5 +346,12 @@ public class DatasetManipulation {
             }
         }
         return indexes;
+    }
+
+    public static int[] getIntersection (int[] arr1, int[] arr2) {
+        return Arrays.stream(arr1)
+                .distinct()
+                .filter(x -> Arrays.stream(arr2).anyMatch(y -> y == x))
+                .toArray();
     }
 }

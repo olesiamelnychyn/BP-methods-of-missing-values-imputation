@@ -56,7 +56,7 @@ public class ImputationMethods {
 				}
 			} else {
 				int[] indexes = DatasetManipulation.getIndexesOfNull(dp);
-				if (getIntersection(indexes).length != 0) {
+				if (DatasetManipulation.getIntersection(indexes, columnPredictors).length != 0) {
 					System.out.println(ANSI_RED_BACKGROUND + "Predictor cannot be predicted -- skip" + ANSI_RESET + "\n");
 					continue;
 				} else if (indexes.length > 0) {
@@ -73,41 +73,42 @@ public class ImputationMethods {
 
 		int index = datasetMissing.getDataPoints().indexOf(dp);
 
+		SimpleDataSet training = DatasetManipulation.createDeepCopyAroundIndex(datasetMissing, index, columnPredicted, columnPredictors);
+
 		if (columnPredictors.length > 1) {
-			if (DatasetManipulation.hasLinearRelationship(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted, columnPredictors)) {
-				MultipleLinearRegressionJama(columnPredicted, index, 4, 4);
+			if (DatasetManipulation.hasLinearRelationship(training, columnPredicted, columnPredictors)) {
+				MultipleLinearRegressionJama(columnPredicted, index, training);
 			} else {
 //				if (!MultiplePolynomialRegressionJama(index, 6, 6, 4)) {
 //					if (!MultiplePolynomialRegressionJama(index, 6, 6, 3)) {
-				MultiplePolynomialRegressionJama(columnPredicted, index, 4, 4, 2);
+				MultiplePolynomialRegressionJama(columnPredicted, index, training, 2);
 //					}
 //				}
 			}
 		} else {
-			if (DatasetManipulation.isCloseToMean(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted)) {
-				MeanImputation(columnPredicted, index, 4, 4);
-			} else if (DatasetManipulation.isCloseToMedian(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted)) {
-				MedianImputation(columnPredicted, index, 4, 4);
-			} else if (DatasetManipulation.isStrictlyIncreasing(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted)) {
-				LinearInterpolatorApache(columnPredicted, columnPredictors[0], index, 2, 2, true);
-			} else if (DatasetManipulation.isStrictlyDecreasing(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted)) {
-				LinearInterpolatorApache(columnPredicted, columnPredictors[0], index, 2, 2, false);
-			} else if (DatasetManipulation.hasLinearRelationship(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted, columnPredictors[0])) {
-				LinearRegressionJSAT(columnPredicted, columnPredictors[0], index, 4, 4);
+			if (DatasetManipulation.isCloseToMean(training, columnPredicted)) {
+				MeanImputation(columnPredicted, index, training);
+			} else if (DatasetManipulation.isCloseToMedian(training, columnPredicted)) {
+				MedianImputation(columnPredicted, index, training);
+			} else if (DatasetManipulation.isStrictlyIncreasing(training, columnPredicted)) {
+				LinearInterpolatorApache(columnPredicted, columnPredictors[0], index, training, true);
+			} else if (DatasetManipulation.isStrictlyDecreasing(training, columnPredicted)) {
+				LinearInterpolatorApache(columnPredicted, columnPredictors[0], index, training, false);
+			} else if (DatasetManipulation.hasLinearRelationship(training, columnPredicted, columnPredictors[0])) {
+				LinearRegressionJSAT(columnPredicted, columnPredictors[0], index, training);
 			} else {
-				int order = DatasetManipulation.getPolynomialOrder(DatasetManipulation.createDeepCopy(datasetMissing, index - 4, index, index + 1, index + 1 + 4), columnPredicted, columnPredictors[0]);
+				int order = DatasetManipulation.getPolynomialOrder(training, columnPredicted, columnPredictors[0]);
 				if (order != -1) {
-					PolynomialCurveFitterApache(columnPredicted, columnPredictors[0], index, 4, 4, order);
+					PolynomialCurveFitterApache(columnPredicted, columnPredictors[0], index, training, order);
 				} else {
-					GaussianCurveFitterApache(columnPredicted, columnPredictors[0], index, 4, 4);
+					GaussianCurveFitterApache(columnPredicted, columnPredictors[0], index, training);
 				}
 			}
 		}
 	}
 
-	public boolean MeanImputation (int columnPredicted, int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
+	public boolean MeanImputation (int columnPredicted, int indexMissing, SimpleDataSet trainingCopy) throws IOException {
 
-		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
 		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
 
 		double mean = trainingCopy.getDataMatrix().getColumn(columnPredicted).mean();
@@ -118,9 +119,8 @@ public class ImputationMethods {
 		return evaluate_concat(columnPredicted, indexMissing, toBePredicted, trainingCopy, method);
 	}
 
-	public boolean MedianImputation (int columnPredicted, int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
+	public boolean MedianImputation (int columnPredicted, int indexMissing, SimpleDataSet trainingCopy) throws IOException {
 
-		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
 		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
 
 		double median = trainingCopy.getDataMatrix().getColumn(columnPredicted).median();
@@ -131,9 +131,8 @@ public class ImputationMethods {
 		return evaluate_concat(columnPredicted, indexMissing, toBePredicted, trainingCopy, method);
 	}
 
-	public boolean LinearRegressionJSAT (int columnPredicted, int columnPredictor, int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
+	public boolean LinearRegressionJSAT (int columnPredicted, int columnPredictor, int indexMissing, SimpleDataSet trainingCopy) throws IOException {
 		String method = "LinearRegression (columnPredictor=" + columnPredictor + ")";
-		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
 		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
 
 		double[] reg = SimpleLinearRegression.regres(trainingCopy.getDataMatrix().getColumn(columnPredictor), trainingCopy.getDataMatrix().getColumn(columnPredicted));
@@ -148,10 +147,9 @@ public class ImputationMethods {
 		return evaluate_concat(columnPredicted, indexMissing, toBePredicted, trainingCopy, method);
 	}
 
-	public boolean MultipleLinearRegressionJSAT (int columnPredicted, int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
+	public boolean MultipleLinearRegressionJSAT (int columnPredicted, int indexMissing, SimpleDataSet trainingCopy_complete) throws IOException {
 		String method = "MultipleLinearRegressionJSAT";
 		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
-		SimpleDataSet trainingCopy_complete = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
 		SimpleDataSet trainingCopy = DatasetManipulation.excludeNonPredictors(trainingCopy_complete, columnPredictors, columnPredicted);
 		SimpleDataSet toBePredictedDataSet = DatasetManipulation.excludeNonPredictors(DatasetManipulation.createDeepCopy(datasetMissing, indexMissing, indexMissing + 1), columnPredictors, columnPredicted);
 		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
@@ -170,11 +168,10 @@ public class ImputationMethods {
 		return evaluate_concat(columnPredicted, indexMissing, toBePredicted, trainingCopy_complete, method);
 	}
 
-	private boolean PolynomialCurveFitterApache (int columnPredicted, int columnPredictor, int indexMissing, int recordsBefore, int recordsAfter, int order) throws IOException {
+	private boolean PolynomialCurveFitterApache (int columnPredicted, int columnPredictor, int indexMissing, SimpleDataSet trainingCopy, int order) throws IOException {
 		String method = "PolynomialCurveFitter (columnPredictor=" + columnPredictor + ")";
 		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
 		final WeightedObservedPoints obs = new WeightedObservedPoints();
-		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
 		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
 		final PolynomialCurveFitter fitter = PolynomialCurveFitter.create(order);
 
@@ -195,11 +192,10 @@ public class ImputationMethods {
 		return evaluate_concat(columnPredicted, indexMissing, toBePredicted, trainingCopy, method);
 	}
 
-	public boolean GaussianCurveFitterApache (int columnPredicted, int columnPredictor, int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
+	public boolean GaussianCurveFitterApache (int columnPredicted, int columnPredictor, int indexMissing, SimpleDataSet trainingCopy) throws IOException {
 		String method = "GaussianCurveFitter (columnPredictor=" + columnPredictor + ")";
 		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
 		final WeightedObservedPoints obs = new WeightedObservedPoints();
-		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
 		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
 		final GaussianCurveFitter fitter = GaussianCurveFitter.create();
 
@@ -221,11 +217,10 @@ public class ImputationMethods {
 		return evaluate_concat(columnPredicted, indexMissing, toBePredicted, trainingCopy, method);
 	}
 
-	public boolean LinearInterpolatorApache (int columnPredicted, int columnPredictor, int indexMissing, int recordsBefore, int recordsAfter, boolean increasing) throws IOException {
+	public boolean LinearInterpolatorApache (int columnPredicted, int columnPredictor, int indexMissing, SimpleDataSet trainingCopy, boolean increasing) throws IOException {
 		String method = "PolynomialCurveFitter (columnPredictor=" + columnPredictor + ")";
 		System.out.println("\n" + ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
 		LinearInterpolator linearInterpolator = new LinearInterpolator();
-		SimpleDataSet trainingCopy = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
 		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
 
 		if (!increasing) {
@@ -267,13 +262,12 @@ public class ImputationMethods {
 		return evaluate_concat(columnPredicted, indexMissing, toBePredicted, trainingCopy, method);
 	}
 
-	private boolean MultipleRegressionJama (int columnPredicted, int indexMissing, int recordsBefore, int recordsAfter, boolean polynomial, int degree) throws IOException {
+	private boolean MultipleRegressionJama (int columnPredicted, int indexMissing, SimpleDataSet trainingCopy_complete, boolean polynomial, int degree) throws IOException {
 		String method = "MultipleLinearRegressionJama ";
 		if (polynomial) {
 			method = "MultiplePolynomialRegressionJama";
 		}
 		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
-		SimpleDataSet trainingCopy_complete = DatasetManipulation.createDeepCopy(datasetMissing, indexMissing - recordsBefore, indexMissing, indexMissing + 1, indexMissing + 1 + recordsAfter);
 		SimpleDataSet trainingCopy = DatasetManipulation.excludeNonPredictors(trainingCopy_complete, columnPredictors, columnPredicted);
 		SimpleDataSet toBePredictedDataSet = DatasetManipulation.excludeNonPredictors(DatasetManipulation.createDeepCopy(datasetMissing, indexMissing, indexMissing + 1), columnPredictors, columnPredicted);
 		DataPoint toBePredicted = datasetMissing.getDataPoint(indexMissing);
@@ -309,12 +303,12 @@ public class ImputationMethods {
 		return evaluate_concat(columnPredicted, indexMissing, toBePredicted, trainingCopy_complete, method);
 	}
 
-	public boolean MultipleLinearRegressionJama (int columnPredicted, int indexMissing, int recordsBefore, int recordsAfter) throws IOException {
-		return MultipleRegressionJama(columnPredicted, indexMissing, recordsBefore, recordsAfter, false, 0);
+	public boolean MultipleLinearRegressionJama (int columnPredicted, int indexMissing, SimpleDataSet trainingCopy) throws IOException {
+		return MultipleRegressionJama(columnPredicted, indexMissing, trainingCopy, false, 0);
 	}
 
-	public boolean MultiplePolynomialRegressionJama (int columnPredicted, int indexMissing, int recordsBefore, int recordsAfter, int degree) throws IOException {
-		return MultipleRegressionJama(columnPredicted, indexMissing, recordsBefore, recordsAfter, true, degree);
+	public boolean MultiplePolynomialRegressionJama (int columnPredicted, int indexMissing, SimpleDataSet trainingCopy, int degree) throws IOException {
+		return MultipleRegressionJama(columnPredicted, indexMissing, trainingCopy, true, degree);
 	}
 
 	private void printPerformanceMeasures (Vec test, Vec predicted, double meanTraining, String method) throws IOException {
@@ -423,10 +417,4 @@ public class ImputationMethods {
 		return val;
 	}
 
-	private int[] getIntersection (int[] indexes) {
-		return Arrays.stream(indexes)
-				.distinct()
-				.filter(x -> Arrays.stream(columnPredictors).anyMatch(y -> y == x))
-				.toArray();
-	}
 }
