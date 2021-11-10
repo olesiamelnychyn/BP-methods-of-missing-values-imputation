@@ -97,42 +97,41 @@ public class DatasetManipulation {
         return datasetCopy;
     }
 
-    static public SimpleDataSet createDeepCopyAroundIndex (SimpleDataSet dataset, int index, int columnPredicted, int[] columnPredictors) {
-        List<DataPoint> ll = new ArrayList<>();
+    static public ArrayList<SimpleDataSet> getToBeImputedAndTrainDeepCopiesAroundIndex (SimpleDataSet dataset, int index, int columnPredicted, int[] columnPredictors) {
+        List<DataPoint> dataPointsTrain = new ArrayList<>();
+        List<DataPoint> dataPointsToBeImputed = new ArrayList<>();
         int firstIndex = index - 4;
-        SimpleDataSet datasetCopy = null;
         int nTraining = 0;
+
+        dataPointsToBeImputed.add(dataset.getDataPoints().get(index));
         if (firstIndex != -4) {
             if (firstIndex < 0) {
                 firstIndex = 0;
             }
-            System.out.print(firstIndex + " ");
-            ll.add(dataset.getDataPoint(firstIndex).clone());
-            nTraining++;
-            datasetCopy = new SimpleDataSet(ll);
-            for (DataPoint obj : dataset.getDataPoints().subList(firstIndex + 1, index)) {
-                datasetCopy.add(obj.clone());
+            for (DataPoint obj : dataset.getDataPoints().subList(firstIndex, index)) {
+                dataPointsTrain.add(obj.clone());
                 nTraining++;
-                System.out.print(dataset.getDataPoints().indexOf(obj) + " ");
             }
         }
 
         int n = dataset.getSampleSize();
         for (int i = index + 1; i < n && nTraining < 8; i++) {
             DataPoint obj = dataset.getDataPoint(i);
-            if (!Double.isNaN(obj.getNumericalValues().get(columnPredicted)) && getIntersection(getIndexesOfNull(obj), columnPredictors).length == 0) {
-                if (datasetCopy == null) {
-                    ll.add(obj.clone());
-                    datasetCopy = new SimpleDataSet(ll);
-                } else {
-                    datasetCopy.add(obj.clone());
-                }
-                nTraining++;
-                System.out.print(i + " ");
 
+            if (getIntersection(getIndexesOfNull(obj), columnPredictors).length == 0) {
+                if (!Double.isNaN(obj.getNumericalValues().get(columnPredicted))) {
+                    dataPointsTrain.add(obj.clone());
+                    nTraining++;
+                } else {
+                    dataPointsToBeImputed.add(obj);
+                }
             }
         }
-        return datasetCopy;
+
+        ArrayList<SimpleDataSet> datasets = new ArrayList<>();
+        datasets.add(new SimpleDataSet(dataPointsTrain));
+        datasets.add(new SimpleDataSet(dataPointsToBeImputed));
+        return datasets;
     }
 
     static public double[][] toArray (SimpleDataSet dataset, int[] columns) {
