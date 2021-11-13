@@ -179,7 +179,6 @@ public class DatasetManipulation {
     static public boolean isCloseToMean (SimpleDataSet dataSet, int columnPredicted) {
         double std = dataSet.getDataMatrix().getColumn(columnPredicted).standardDeviation();
         double mean = dataSet.getDataMatrix().getColumn(columnPredicted).mean();
-//        System.out.println(std + " " + mean + " " + std / mean);
         if (std / mean <= 0.35) {
             return true;
         }
@@ -192,7 +191,6 @@ public class DatasetManipulation {
         for (DataPoint dp : dataSet.getDataPoints()) {
             dist += abs(dp.getNumericalValues().get(columnPredicted) - median);
         }
-//        System.out.println(dist + " " + median + " " + dist / 8 / median);
         if (dist / 8 / median <= 0.2) {
             return true;
         }
@@ -204,7 +202,6 @@ public class DatasetManipulation {
                 columnPredicted, columnPredictor
         };
         double corr = correlation(dataSet.getNumericColumn(columnPredicted), dataSet.getNumericColumn(columnPredictor), true);
-        System.out.println(corr);
         if (abs(corr) < 0.4) {
             return false;
         }
@@ -256,7 +253,6 @@ public class DatasetManipulation {
             corr[i] = correlation(dataSet.getNumericColumn(columnPredicted), new DenseVector(powPred[i]), true);
         }
         int iMax = getMax(corr);
-        System.out.println(corr[iMax] + " " + iMax);
         if (abs(corr[iMax]) < 0.3) {
             return -1;
         }

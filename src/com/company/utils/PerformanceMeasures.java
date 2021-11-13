@@ -15,7 +15,8 @@ public class PerformanceMeasures {
         int n = actual.length();
         double sum = 0.0;
         for (int i = 0; i < n; i++) {
-            sum+= pow(predicted.get(i) - actual.get(i), 2);
+            double x = predicted.get(i) - actual.get(i);
+            sum += x * x;
         }
 
         return sum/n;
@@ -31,7 +32,8 @@ public class PerformanceMeasures {
         int n = actual.length();
         double sum = 0.0;
         for (int i = 0; i < n; i++) {
-            sum+= pow(predicted.get(i) - actual.get(i), 2);
+            double x = predicted.get(i) - actual.get(i);
+            sum += x * x;
         }
 
         return sqrt(sum/n);
@@ -63,10 +65,11 @@ public class PerformanceMeasures {
         int n = actual.length();
         double sumTop = 0.0, sumBottom = 0.0;
         for (int i = 0; i < n; i++) {
-            sumTop += pow(predicted.get(i) - actual.get(i), 2);
-            sumBottom += pow(actual.get(i) - meanTraining, 2);
+            double x = predicted.get(i) - actual.get(i);
+            sumTop += x * x;
+            x = actual.get(i) - meanTraining;
+            sumBottom += x * x;
         }
-
         return sumTop / sumBottom;
     }
 
@@ -80,8 +83,10 @@ public class PerformanceMeasures {
         int n = actual.length();
         double sumTop = 0, sumBottom = 0;
         for (int i = 0; i < n; i++) {
-            sumTop += pow(predicted.get(i) - actual.get(i), 2);
-            sumBottom += pow(actual.get(i) - meanTraining, 2);
+            double x = predicted.get(i) - actual.get(i);
+            sumTop += x * x;
+            x = (actual.get(i) - meanTraining);
+            sumBottom += x * x;
         }
 
         return sqrt(sumTop / sumBottom);

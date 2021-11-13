@@ -17,7 +17,7 @@ public class Main {
 	public static void main (String[] args) throws IOException {
 
 		Input input = readInput();
-		ImputationMethods imputationMethods = new ImputationMethods(input.columnPredicted, input.columnPredictors, input.datasetComplete, input.datasetMissing);
+		ImputationMethods imputationMethods = new ImputationMethods(input.columnPredictors, input.datasetComplete, input.datasetMissing);
 
 		String str = "Results:\n";
 		System.out.println("\n\n" + str);
