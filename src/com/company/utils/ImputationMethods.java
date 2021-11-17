@@ -29,22 +29,26 @@ public class ImputationMethods {
 	SimpleDataSet datasetComplete;
 	SimpleDataSet datasetMissing;
 	Map<Integer, List<ImputedValue>> values = new HashMap<>();
-
+	boolean printOnlyFinal;
 	static DecimalFormat df2 = new DecimalFormat("#.##");
 
-	public ImputationMethods (int[] columnPredictors, SimpleDataSet datasetComplete, SimpleDataSet datasetMissing) {
+	public ImputationMethods (int[] columnPredictors, SimpleDataSet datasetComplete, SimpleDataSet datasetMissing, boolean printOnlyFinal) {
 		this.datasetComplete = datasetComplete;
 		this.datasetMissing = datasetMissing;
 		this.columnPredictors = columnPredictors;
+		this.printOnlyFinal = printOnlyFinal;
 	}
 
 	public void runImputation (int columnPredicted) throws IOException {
+		int skipped = 0;
 		for (DataPoint dp : datasetMissing.getDataPoints()) {
 
 			if (columnPredicted != -1) {
 				for (int i : columnPredictors) {
 					if (i == columnPredicted) {
-						System.out.println("Predictor cannot be predicted -- exit");
+						if (!printOnlyFinal) {
+							System.out.println("Predictor cannot be predicted -- exit");
+						}
 						return;
 					}
 				}
@@ -54,7 +58,10 @@ public class ImputationMethods {
 			} else {
 				int[] indexes = DatasetManipulation.getIndexesOfNull(dp);
 				if (DatasetManipulation.getIntersection(indexes, columnPredictors).length != 0) {
-					System.out.println(ANSI_RED_BACKGROUND + "Predictor cannot be predicted -- skip" + ANSI_RESET + "\n\n");
+					skipped++;
+					if (!printOnlyFinal) {
+						System.out.println(ANSI_RED_BACKGROUND + "Predictor cannot be predicted -- skip" + ANSI_RESET + "\n\n");
+					}
 				} else if (indexes.length > 0) {
 					for (int idx : indexes) {
 						impute(dp, idx);
@@ -62,6 +69,10 @@ public class ImputationMethods {
 				}
 			}
 		}
+		if (skipped != 0) {
+			System.out.println("Number of records skipped due to absence of predictor : " + skipped);
+		}
+
 		evaluateFinal();
 	}
 
@@ -84,9 +95,9 @@ public class ImputationMethods {
 				MeanImputation(columnPredicted, datasets);
 			} else if (DatasetManipulation.isCloseToMedian(datasets.get(0), columnPredicted)) {
 				MedianImputation(columnPredicted, datasets);
-			} else if (DatasetManipulation.isStrictlyIncreasing(datasets.get(0), columnPredicted)) {
+			} else if (DatasetManipulation.isStrictlyIncreasing(datasets.get(0), columnPredicted) && DatasetManipulation.isStrictlyIncreasing(datasets.get(0), columnPredictors[0])) {
 				LinearInterpolatorApache(columnPredicted, columnPredictors[0], datasets, true);
-			} else if (DatasetManipulation.isStrictlyDecreasing(datasets.get(0), columnPredicted)) {
+			} else if (DatasetManipulation.isStrictlyDecreasing(datasets.get(0), columnPredicted) && DatasetManipulation.isStrictlyDecreasing(datasets.get(0), columnPredictors[0])) {
 				LinearInterpolatorApache(columnPredicted, columnPredictors[0], datasets, false);
 			} else if (DatasetManipulation.hasLinearRelationship(datasets.get(0), columnPredicted, columnPredictors[0])) {
 				LinearRegressionJSAT(columnPredicted, columnPredictors[0], datasets);
@@ -106,14 +117,17 @@ public class ImputationMethods {
 		SimpleDataSet trainingCopy = datasets.get(0);
 		SimpleDataSet toBePredicted = datasets.get(1);
 		double mean = trainingCopy.getDataMatrix().getColumn(columnPredicted).mean();
-		String method = "Mean Imputation";
-		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET + "\nMean: [" + mean + "]");
+		if (!printOnlyFinal) {
+			System.out.println(ANSI_PURPLE_BACKGROUND + "Mean Imputation" + ANSI_RESET + "\nMean: [" + mean + "]");
+		}
 		for (DataPoint dp : toBePredicted.getDataPoints()) {
 			int indexMissing = datasetMissing.getDataPoints().indexOf(dp);
 			dp.getNumericalValues().set(columnPredicted, mean);
 			evaluate_concat(columnPredicted, indexMissing, dp);
 		}
-		System.out.println("\n");
+		if (!printOnlyFinal) {
+			System.out.println("\n");
+		}
 		return true;
 	}
 
@@ -123,19 +137,21 @@ public class ImputationMethods {
 		SimpleDataSet toBePredicted = datasets.get(1);
 
 		double median = trainingCopy.getDataMatrix().getColumn(columnPredicted).median();
-		String method = "Median Imputation";
-		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET + "\nMedian: [" + median + "]");
+		if (!printOnlyFinal) {
+			System.out.println(ANSI_PURPLE_BACKGROUND + "Median Imputation" + ANSI_RESET + "\nMedian: [" + median + "]");
+		}
 		for (DataPoint dp : toBePredicted.getDataPoints()) {
 			int indexMissing = datasetMissing.getDataPoints().indexOf(dp);
 			dp.getNumericalValues().set(columnPredicted, median);
 			evaluate_concat(columnPredicted, indexMissing, dp);
 		}
-		System.out.println("\n");
+		if (!printOnlyFinal) {
+			System.out.println("\n");
+		}
 		return true;
 	}
 
 	public boolean LinearRegressionJSAT (int columnPredicted, int columnPredictor, ArrayList<SimpleDataSet> datasets) {
-		String method = "LinearRegression (columnPredictor=" + columnPredictor + ")";
 		SimpleDataSet trainingCopy = datasets.get(0);
 		SimpleDataSet toBePredicted = datasets.get(1);
 
@@ -143,7 +159,9 @@ public class ImputationMethods {
 		if ("NaN".equals(String.valueOf(reg[0])) || "NaN".equals(String.valueOf(reg[1]))) {
 			return false;
 		}
-		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET + "\na & b: [" + reg[0] + "," + reg[1] + "]");
+		if (!printOnlyFinal) {
+			System.out.println(ANSI_PURPLE_BACKGROUND + "LinearRegression (columnPredictor=" + columnPredictor + ")" + ANSI_RESET + "\na & b: [" + reg[0] + "," + reg[1] + "]");
+		}
 
 		for (DataPoint dp : toBePredicted.getDataPoints()) {
 			int indexMissing = datasetMissing.getDataPoints().indexOf(dp);
@@ -151,14 +169,13 @@ public class ImputationMethods {
 			dp.getNumericalValues().set(columnPredicted, newValue);
 			evaluate_concat(columnPredicted, indexMissing, dp);
 		}
-		System.out.println("\n");
+		if (!printOnlyFinal) {
+			System.out.println("\n");
+		}
 		return true;
 	}
 
 	public boolean MultipleLinearRegressionJSAT (int columnPredicted, ArrayList<SimpleDataSet> datasets_complete) {
-		String method = "MultipleLinearRegressionJSAT";
-		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
-
 		SimpleDataSet trainingCopy_complete = datasets_complete.get(0);
 		SimpleDataSet toBePredicted = datasets_complete.get(1);
 		SimpleDataSet trainingCopy = DatasetManipulation.excludeNonPredictors(trainingCopy_complete, columnPredictors, columnPredicted);
@@ -170,7 +187,10 @@ public class ImputationMethods {
 		MultipleLinearRegression multipleLinearRegression = new MultipleLinearRegression();
 		multipleLinearRegression.train(regressionDataSet);
 
-		System.out.println("Weights: " + multipleLinearRegression.getRawWeight());
+		if (!printOnlyFinal) {
+			System.out.println(ANSI_PURPLE_BACKGROUND + "MultipleLinearRegressionJSAT" + ANSI_RESET);
+			System.out.println("Weights: " + multipleLinearRegression.getRawWeight());
+		}
 
 		int i = 0;
 		for (DataPoint dp : toBePredicted.getDataPoints()) {
@@ -179,13 +199,13 @@ public class ImputationMethods {
 			dp.getNumericalValues().set(columnPredicted, newValue);
 			evaluate_concat(columnPredicted, indexMissing, dp);
 		}
-		System.out.println("\n");
+		if (!printOnlyFinal) {
+			System.out.println("\n");
+		}
 		return true;
 	}
 
 	private boolean PolynomialCurveFitterApache (int columnPredicted, int columnPredictor, ArrayList<SimpleDataSet> datasets, int order) {
-		String method = "PolynomialCurveFitter (columnPredictor=" + columnPredictor + ")";
-		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
 		SimpleDataSet trainingCopy = datasets.get(0);
 		SimpleDataSet toBePredicted = datasets.get(1);
 
@@ -197,11 +217,14 @@ public class ImputationMethods {
 		}
 
 		final double[] coeff = fitter.fit(obs.toList());
-		System.out.print("Coefficients: [");
-		for (int i = 0; i < coeff.length - 1; i++) {
-			System.out.print(coeff[i] + ",");
+		if (!printOnlyFinal) {
+			System.out.println(ANSI_PURPLE_BACKGROUND + "PolynomialCurveFitter (columnPredictor=" + columnPredictor + ")" + ANSI_RESET);
+			System.out.print("Coefficients: [");
+			for (int i = 0; i < coeff.length - 1; i++) {
+				System.out.print(coeff[i] + ",");
+			}
+			System.out.println(coeff[coeff.length - 1] + "]");
 		}
-		System.out.println(coeff[coeff.length - 1] + "]");
 
 		for (DataPoint dp : toBePredicted.getDataPoints()) {
 			int indexMissing = datasetMissing.getDataPoints().indexOf(dp);
@@ -209,13 +232,13 @@ public class ImputationMethods {
 			dp.getNumericalValues().set(columnPredicted, newValue);
 			evaluate_concat(columnPredicted, indexMissing, dp);
 		}
-		System.out.println("\n");
+		if (!printOnlyFinal) {
+			System.out.println("\n");
+		}
 		return true;
 	}
 
 	public boolean GaussianCurveFitterApache (int columnPredicted, int columnPredictor, ArrayList<SimpleDataSet> datasets) {
-		String method = "GaussianCurveFitter (columnPredictor=" + columnPredictor + ")";
-		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
 		SimpleDataSet trainingCopy = datasets.get(0);
 		SimpleDataSet toBePredicted = datasets.get(1);
 
@@ -227,12 +250,14 @@ public class ImputationMethods {
 		}
 
 		final double[] coeff = fitter.fit(obs.toList());
-
-		System.out.print("Coefficients: [");
-		for (int i = 0; i < coeff.length - 1; i++) {
-			System.out.print(coeff[i] + ",");
+		if (!printOnlyFinal) {
+			System.out.println(ANSI_PURPLE_BACKGROUND + "GaussianCurveFitter (columnPredictor=" + columnPredictor + ")" + ANSI_RESET);
+			System.out.print("Coefficients: [");
+			for (int i = 0; i < coeff.length - 1; i++) {
+				System.out.print(coeff[i] + ",");
+			}
+			System.out.println(coeff[coeff.length - 1] + "]");
 		}
-		System.out.println(coeff[coeff.length - 1] + "]");
 
 		for (DataPoint dp : toBePredicted.getDataPoints()) {
 			int indexMissing = datasetMissing.getDataPoints().indexOf(dp);
@@ -240,13 +265,13 @@ public class ImputationMethods {
 			dp.getNumericalValues().set(columnPredicted, newValue);
 			evaluate_concat(columnPredicted, indexMissing, dp);
 		}
-		System.out.println("\n");
+		if (!printOnlyFinal) {
+			System.out.println("\n");
+		}
 		return true;
 	}
 
 	public boolean LinearInterpolatorApache (int columnPredicted, int columnPredictor, ArrayList<SimpleDataSet> datasets, boolean increasing) {
-		String method = "PolynomialCurveFitter (columnPredictor=" + columnPredictor + ")";
-		System.out.println("\n" + ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
 		SimpleDataSet trainingCopy = datasets.get(0);
 		SimpleDataSet toBePredicted = datasets.get(1);
 
@@ -259,11 +284,14 @@ public class ImputationMethods {
 		PolynomialSplineFunction polynomialSplineFunction = linearInterpolator.interpolate(trainingCopy.getDataMatrix().getColumn(columnPredictor).arrayCopy(), trainingCopy.getDataMatrix().getColumn(columnPredicted).arrayCopy());
 		double[] coeff = polynomialSplineFunction.getKnots();
 
-		System.out.print("Coefficients: [");
-		for (int i = 0; i < coeff.length - 1; i++) {
-			System.out.print(coeff[i] + ",");
+		if (!printOnlyFinal) {
+			System.out.println("\n" + ANSI_PURPLE_BACKGROUND + "PolynomialCurveFitter (columnPredictor=" + columnPredictor + ")" + ANSI_RESET);
+			System.out.print("Coefficients: [");
+			for (int i = 0; i < coeff.length - 1; i++) {
+				System.out.print(coeff[i] + ",");
+			}
+			System.out.println(coeff[coeff.length - 1] + "]");
 		}
-		System.out.println(coeff[coeff.length - 1] + "]");
 
 		for (DataPoint dp : toBePredicted.getDataPoints()) {
 			int indexMissing = datasetMissing.getDataPoints().indexOf(dp);
@@ -271,22 +299,25 @@ public class ImputationMethods {
 			dp.getNumericalValues().set(columnPredicted, newValue);
 			evaluate_concat(columnPredicted, indexMissing, dp);
 		}
-		System.out.println("\n");
+		if (!printOnlyFinal) {
+			System.out.println("\n");
+		}
 		return true;
 	}
 
 	public boolean PolynomialRegressionJama (int columnPredicted, int columnPredictor, ArrayList<SimpleDataSet> datasets) {
-		String method = "PolynomialRegressionJama (columnPredictor=" + columnPredictor + ")";
-		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
 		SimpleDataSet trainingCopy = datasets.get(0);
 		SimpleDataSet toBePredicted = datasets.get(1);
 		PolynomialRegression polynomialRegression = new PolynomialRegression(trainingCopy.getDataMatrix().getColumn(columnPredictor).arrayCopy(), trainingCopy.getDataMatrix().getColumn(columnPredicted).arrayCopy(), 2);
 
-		System.out.print("Coefficients: [");
-		for (int i = 0; i <= polynomialRegression.degree() - 1; i++) {
-			System.out.print(polynomialRegression.beta(i) + ",");
+		if (!printOnlyFinal) {
+			System.out.println(ANSI_PURPLE_BACKGROUND + "PolynomialRegressionJama (columnPredictor=" + columnPredictor + ")" + ANSI_RESET);
+			System.out.print("Coefficients: [");
+			for (int i = 0; i <= polynomialRegression.degree() - 1; i++) {
+				System.out.print(polynomialRegression.beta(i) + ",");
+			}
+			System.out.println(polynomialRegression.beta(polynomialRegression.degree()) + "]");
 		}
-		System.out.println(polynomialRegression.beta(polynomialRegression.degree()) + "]");
 
 		for (DataPoint dp : toBePredicted.getDataPoints()) {
 			int indexMissing = datasetMissing.getDataPoints().indexOf(dp);
@@ -294,25 +325,27 @@ public class ImputationMethods {
 			dp.getNumericalValues().set(columnPredicted, newValue);
 			evaluate_concat(columnPredicted, indexMissing, dp);
 		}
-		System.out.println("\n");
+		if (!printOnlyFinal) {
+			System.out.println("\n");
+		}
 		return true;
 	}
 
 	private boolean MultipleRegressionJama (int columnPredicted, ArrayList<SimpleDataSet> datasets_complete, boolean polynomial, int degree) {
-		String method = "MultipleLinearRegressionJama ";
-		if (polynomial) {
-			method = "MultiplePolynomialRegressionJama";
-		}
 		SimpleDataSet trainingCopy_complete = datasets_complete.get(0);
 		SimpleDataSet toBePredicted = datasets_complete.get(1);
-		System.out.println(ANSI_PURPLE_BACKGROUND + method + ANSI_RESET);
+		if (!printOnlyFinal) {
+			System.out.println(ANSI_PURPLE_BACKGROUND + (polynomial ? "MultiplePolynomialRegressionJama" : "MultipleLinearRegressionJama ") + ANSI_RESET);
+		}
 		SimpleDataSet trainingCopy = DatasetManipulation.excludeNonPredictors(trainingCopy_complete, columnPredictors, columnPredicted);
 		SimpleDataSet toBePredictedDataSet = DatasetManipulation.excludeNonPredictors(toBePredicted, columnPredictors, columnPredicted);
 
 		int[] predictors = Arrays.copyOf(columnPredictors, columnPredictors.length);
 
 		if (polynomial) {
-			System.out.println("Polynomial degree: " + degree);
+			if (!printOnlyFinal) {
+				System.out.println("Polynomial degree: " + degree);
+			}
 			for (int i = 0; i < predictors.length; i++) {
 				predictors[i] = i + 1;
 			}
@@ -328,11 +361,13 @@ public class ImputationMethods {
 		double[][] regressionTestDataSet = DatasetManipulation.toArray(toBePredictedDataSet, predictors);
 		MultipleLinearRegressionJama multipleLinearRegression = new MultipleLinearRegressionJama(regressionTrainingDataSet, trainingCopy.getDataMatrix().getColumn(0).arrayCopy());
 
-		System.out.print("Coefficients: [");
-		for (int i = 0; i < columnPredictors.length - 1; i++) {
-			System.out.print(multipleLinearRegression.beta(i) + ",");
+		if (!printOnlyFinal) {
+			System.out.print("Coefficients: [");
+			for (int i = 0; i < columnPredictors.length - 1; i++) {
+				System.out.print(multipleLinearRegression.beta(i) + ",");
+			}
+			System.out.println(multipleLinearRegression.beta(columnPredictors.length) + "]");
 		}
-		System.out.println(multipleLinearRegression.beta(columnPredictors.length) + "]");
 
 		int i = 0;
 		for (DataPoint dp : toBePredicted.getDataPoints()) {
@@ -354,47 +389,41 @@ public class ImputationMethods {
 	}
 
 	private void printPerformanceMeasures (Vec test, Vec predicted, double meanTraining, String method) throws IOException {
-		writeOutput(test, predicted, meanTraining, method);
-
 		System.out.println("Performance (" + method + "):");
-		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tMean-Squared Error: " + df2.format(MSError(test, predicted)) + ANSI_RESET + ANSI_BOLD_OFF);
-		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tRoot Mean-Squared Error: " + df2.format(RMSError(test, predicted)) + ANSI_RESET + ANSI_BOLD_OFF);
-		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tMean-Absolute Error: " + df2.format(meanAbsoluteError(test, predicted)) + ANSI_RESET + ANSI_BOLD_OFF);
-		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tRelative-Squared Error: " + df2.format(relativeSquaredError(test, predicted, meanTraining)) + ANSI_RESET + ANSI_BOLD_OFF);
-		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tRoot Relative-Squared Error: " + df2.format(rootRelativeSquaredError(test, predicted, meanTraining) * 100) + "%" + ANSI_RESET + ANSI_BOLD_OFF);
-		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tRelative-Absolute Error: " + df2.format(relativeAbsoluteError(test, predicted, meanTraining) * 100) + "%" + ANSI_RESET + ANSI_BOLD_OFF);
-		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tCorrelation Coefficient: " + df2.format(DescriptiveStatistics.sampleCorCoeff(test, predicted)) + ANSI_RESET + ANSI_BOLD_OFF);
-		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tMean Absolute Percentage Error: " + df2.format(meanAbsolutePercentageError(test, predicted)) + "%" + ANSI_RESET + ANSI_BOLD_OFF + "\n\n");
 
+		Map<String, String> performanceMeasures = new LinkedHashMap<>();
+		performanceMeasures.put("Mean-Squared Error", df2.format(MSError(test, predicted)));
+		performanceMeasures.put("Root Mean-Squared Error", df2.format(RMSError(test, predicted)));
+		performanceMeasures.put("Mean-Absolute Error", df2.format(meanAbsoluteError(test, predicted)));
+		performanceMeasures.put("Relative-Squared Error", df2.format(relativeSquaredError(test, predicted, meanTraining)));
+		performanceMeasures.put("Root Relative-Squared Error", df2.format(rootRelativeSquaredError(test, predicted, meanTraining) * 100) + "%");
+		performanceMeasures.put("Relative-Absolute Error", df2.format(relativeAbsoluteError(test, predicted, meanTraining) * 100) + "%");
+		performanceMeasures.put("Correlation Coefficient", df2.format(DescriptiveStatistics.sampleCorCoeff(test, predicted)));
+		performanceMeasures.put("Mean Absolute Percentage Error", df2.format(meanAbsolutePercentageError(test, predicted)) + "%");
+
+		for (Map.Entry<String, String> entry : performanceMeasures.entrySet()) {
+			System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\t" + entry.getKey() + ": " + entry.getValue() + ANSI_RESET + ANSI_BOLD_OFF);
+		}
+		System.out.println("\n");
+
+		writeOutput(performanceMeasures, method);
 	}
 
-	private void printPerformanceMeasures (ImputedValue value) {
-
-		Vec test = new DenseVector(new double[]{value.actual});
-		Vec predicted = new DenseVector(new double[]{value.predicted});
-
-		System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\tMean Absolute Percentage Error: " + df2.format(meanAbsolutePercentageError(test, predicted)) + "%" + ANSI_RESET + ANSI_BOLD_OFF);
-
-	}
-
-	static private void writeOutput (Vec test, Vec predicted, double meanTraining, String method) throws IOException {
+	static private void writeOutput (Map<String, String> performanceMeasures, String method) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt", true));
 		writer.append("\n\n" + method);
 		writer.append("\nPerformance:");
-		writer.append("\n\tRoot Mean-Squared Error: " + df2.format(RMSError(test, predicted)));
-		writer.append("\n\tRelative-Absolute Error: " + df2.format(relativeAbsoluteError(test, predicted, meanTraining) * 100) + "%");
-		writer.append("\n\tMean-Squared Error: " + df2.format(MSError(test, predicted)));
-		writer.append("\n\tMean-Absolute Error: " + df2.format(meanAbsoluteError(test, predicted)));
-		writer.append("\n\tRelative-Squared Error: " + df2.format(relativeSquaredError(test, predicted, meanTraining)));
-		writer.append("\n\tRoot Relative-Squared Error: " + df2.format(rootRelativeSquaredError(test, predicted, meanTraining) * 100) + "%");
-		writer.append("\n\tCorrelation Coefficient: " + df2.format(DescriptiveStatistics.sampleCorCoeff(test, predicted)));
-		writer.append("\n\tMean Absolute Percentage Error: " + df2.format(meanAbsolutePercentageError(test, predicted)) + "%" + "\n");
+
+		for (Map.Entry<String, String> entry : performanceMeasures.entrySet()) {
+			writer.append("\n\t" + entry.getKey() + ": " + entry.getValue());
+		}
+		writer.append("\n\n");
 		writer.close();
 	}
 
 	private void evaluate_concat (int columnPredicted, int indexMissing, DataPoint toBePredicted) {
 		if (datasetComplete != null) {
-			ImputedValue value = new ImputedValue(datasetComplete.getDataPoint(indexMissing).getNumericalValues().get(columnPredicted), toBePredicted.getNumericalValues().get(columnPredicted));
+			ImputedValue value = new ImputedValue(indexMissing, datasetComplete.getDataPoint(indexMissing).getNumericalValues().get(columnPredicted), toBePredicted.getNumericalValues().get(columnPredicted));
 			if (values.containsKey(columnPredicted)) {
 				values.get(columnPredicted).add(value);
 			} else {
@@ -402,12 +431,20 @@ public class ImputationMethods {
 				list.add(value);
 				values.put(columnPredicted, list);
 			}
-			printPerformanceMeasures(value);
+			if (!printOnlyFinal) {
+				Vec test = new DenseVector(new double[]{value.actual});
+				Vec predicted = new DenseVector(new double[]{value.predicted});
+				System.out.println(value.index + "\t" + value.actual + " --- " + value.predicted);
+				System.out.println("\t" + indexMissing + "\t" + columnPredicted + "\t" + ANSI_BOLD_ON + ANSI_PURPLE + "Mean Absolute Percentage Error: " + df2.format(meanAbsolutePercentageError(test, predicted)) + "%" + ANSI_RESET + ANSI_BOLD_OFF);
+			}
 		}
 	}
 
 	private void evaluateFinal () throws IOException {
-		System.out.println(ANSI_PURPLE_BACKGROUND + "All together" + ANSI_RESET);
+		System.out.println("\n" + ANSI_PURPLE_BACKGROUND + "Results" + ANSI_RESET + "\n");
+		BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt"));
+		writer.write("Results:\n");
+		writer.close();
 
 		for (Map.Entry<Integer, List<ImputedValue>> entry : values.entrySet()) {
 			List<ImputedValue> list = entry.getValue();
@@ -418,7 +455,9 @@ public class ImputationMethods {
 			for (ImputedValue value : list) {
 				double actual = value.actual;
 				double predicted = value.predicted;
-				System.out.println(actual + " --- " + predicted);
+				if (!printOnlyFinal) {
+					System.out.println(actual + " --- " + predicted);
+				}
 				act.set(i, actual);
 				pred.set(i++, predicted);
 			}

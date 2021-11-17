@@ -17,13 +17,7 @@ public class Main {
 	public static void main (String[] args) throws IOException {
 
 		Input input = readInput();
-		ImputationMethods imputationMethods = new ImputationMethods(input.columnPredictors, input.datasetComplete, input.datasetMissing);
-
-		String str = "Results:\n";
-		System.out.println("\n\n" + str);
-		BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt"));
-		writer.write(str);
-		writer.close();
+		ImputationMethods imputationMethods = new ImputationMethods(input.columnPredictors, input.datasetComplete, input.datasetMissing, input.printOnlyFinal);
 
 		imputationMethods.runImputation(input.columnPredicted);
 		writeOutput(input.datasetMissing);
@@ -34,6 +28,7 @@ public class Main {
 		public SimpleDataSet datasetMissing;
 		public int columnPredicted;
 		public int[] columnPredictors;
+		public boolean printOnlyFinal;
 	}
 
 	private static Input readInput () throws IOException {
@@ -81,21 +76,17 @@ public class Main {
 		if (j == 0) {
 			throw new InvalidObjectException("There is no predictors!");
 		}
-//		System.out.println(j);
+
 		input.columnPredictors = Arrays.copyOfRange(input.columnPredictors, 0, j);
 
-//		for (int predictor : input.columnPredictors) {
-//			System.out.println(predictor);
-//		}
-//		int k = 0;
-//		for (int i = 0; i < datasetComplete.getDataMatrix().cols() - 1; i++) {
-//			if (k != columnPredicted) {
-//				columnPredictors[i] = k++;
-//			} else {
-//				columnPredictors[i] = ++k;
-//				k++;
-//			}
-//		}
+		System.out.println("Print only final measures? (0 - no, any other key - yes)");
+		in = scanner.nextLine();
+		if ("0".equals(in)) {
+			input.printOnlyFinal = false;
+		} else {
+			input.printOnlyFinal = true;
+		}
+
 		return input;
 	}
 

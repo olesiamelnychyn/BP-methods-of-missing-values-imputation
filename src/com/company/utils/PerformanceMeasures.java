@@ -59,6 +59,7 @@ public class PerformanceMeasures {
      *
      * @param predicted predicted values
      * @param actual original values
+     * @param meanTraining mean over training dataset
      * @return relative-squared error
      */
     static public double relativeSquaredError (Vec actual, Vec predicted, double meanTraining) {
@@ -77,6 +78,7 @@ public class PerformanceMeasures {
      *
      * @param predicted predicted values
      * @param actual original values
+     * @param meanTraining mean over training dataset
      * @return root relative-squared error
      */
     static public double rootRelativeSquaredError (Vec actual, Vec predicted, double meanTraining) {
@@ -96,6 +98,7 @@ public class PerformanceMeasures {
      *
      * @param predicted predicted values
      * @param actual original values
+     * @param meanTraining mean over training dataset
      * @return relative-absolute error
      */
     static public double relativeAbsoluteError (Vec actual, Vec predicted, double meanTraining) {
@@ -118,11 +121,20 @@ public class PerformanceMeasures {
      */
     static public double meanAbsolutePercentageError (Vec actual, Vec predicted) {
         int n = actual.length();
+        int skipped = 0;
         double sum = 0.0;
         for (int i = 0; i < n; i++) {
-            sum += abs(actual.get(i) - predicted.get(i)) / actual.get(i);
+            if (actual.get(i) == 0.0) {
+                n--;
+                skipped++;
+                continue;
+            }
+            sum += abs((actual.get(i) - predicted.get(i)) / actual.get(i));
         }
 
+        if (skipped != 0) {
+            System.out.println("Number of records skipped when calculating Mean Percentage Error due to equality to 0: " + skipped);
+        }
         return sum * 100 / n;
     }
 }

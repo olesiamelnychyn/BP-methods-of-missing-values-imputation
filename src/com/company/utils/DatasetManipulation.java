@@ -154,24 +154,25 @@ public class DatasetManipulation {
         }
     }
 
-    static public boolean isStrictlyIncreasing (SimpleDataSet dataSet, int columnPredicted) {
-        double current = dataSet.getDataPoint(0).getNumericalValues().get(columnPredicted);
+    static public boolean isStrictlyIncreasing (SimpleDataSet dataSet, int column) {
+        double current = dataSet.getDataPoint(0).getNumericalValues().get(column);
         for (int i = 1; i < dataSet.getSampleSize(); i++) {
-            if (dataSet.getDataPoint(i).getNumericalValues().get(columnPredicted) < current) {
+            if (dataSet.getDataPoint(i).getNumericalValues().get(column) < current) {
                 return false;
             }
-            current = dataSet.getDataPoint(i).getNumericalValues().get(columnPredicted);
+            current = dataSet.getDataPoint(i).getNumericalValues().get(column);
         }
         return true;
     }
 
-    static public boolean isStrictlyDecreasing (SimpleDataSet dataSet, int columnPredicted) {
-        double current = dataSet.getDataPoint(0).getNumericalValues().get(columnPredicted);
+    static public boolean isStrictlyDecreasing (SimpleDataSet dataSet, int column) {
+        double current = dataSet.getDataPoint(0).getNumericalValues().get(column);
         for (int i = 1; i < dataSet.getSampleSize(); i++) {
-            if (dataSet.getDataPoint(i).getNumericalValues().get(columnPredicted) > current) {
+
+            if (dataSet.getDataPoint(i).getNumericalValues().get(column) > current) {
                 return false;
             }
-            current = dataSet.getDataPoint(i).getNumericalValues().get(columnPredicted);
+            current = dataSet.getDataPoint(i).getNumericalValues().get(column);
         }
         return true;
     }
