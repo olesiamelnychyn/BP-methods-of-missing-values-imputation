@@ -16,22 +16,22 @@ public class PerformanceMeasures {
     private Vec actual;
     private Vec predicted;
     private double meanTraining;
-    protected double[] metrics;
+    protected double[] measures;
     static DecimalFormat df2 = new DecimalFormat("#.##");
 
     public PerformanceMeasures (Vec actual, Vec precicted, double meanTraining) {
         this.actual = actual;
         this.predicted = precicted;
         this.meanTraining = meanTraining;
-        calcMetrics();
+        calcMeasures();
     }
 
-    public double[] getMetrics () {
-        return metrics;
+    public double[] getMeasures () {
+        return measures;
     }
 
-    private void calcMetrics () {
-        metrics = new double[]{
+    private void calcMeasures () {
+        measures = new double[]{
                 MSError(actual, predicted),
                 RMSError(actual, predicted),
                 meanAbsoluteError(actual, predicted),
@@ -44,53 +44,40 @@ public class PerformanceMeasures {
     }
 
     public void printAndWriteResults (int columnPredicted) throws IOException {
-        String[] strings = getStrings();
-        printPerformanceMeasures(strings, columnPredicted);
-        writeOutputPerformanceMeasures(strings, columnPredicted);
+        String str = toString();
+        printPerformanceMeasures(str, columnPredicted);
+        writeOutputPerformanceMeasures(str, columnPredicted);
     }
 
-    public String[] getStrings () {
-        return new String[]{
-                "Mean-Squared Error: " + df2.format(metrics[0]),
-                "Root Mean-Squared Error:" + df2.format(metrics[1]),
-                "Mean-Absolute Error: " + df2.format(metrics[2]),
-                "Relative-Squared Error: " + df2.format(metrics[3]),
-                "Root Relative-Squared Error: " + df2.format(metrics[4]) + "%",
-                "Relative-Absolute Error: " + df2.format(metrics[5]) + "%",
-                "Pearson Correlation Coefficient: " + df2.format(metrics[6]),
-                "Mean Absolute Percentage Error: " + df2.format(metrics[7]) + "%"
-        };
+    public String toString () {
+        return "\n\n\tMean-Squared Error: " + df2.format(measures[0]) +
+                "\n\tRoot Mean-Squared Error:" + df2.format(measures[1]) +
+                "\n\tMean-Absolute Error: " + df2.format(measures[2]) +
+                "\n\tRelative-Squared Error: " + df2.format(measures[3]) +
+                "\n\tRoot Relative-Squared Error: " + df2.format(measures[4]) + "%" +
+                "\n\tRelative-Absolute Error: " + df2.format(measures[5]) + "%" +
+                "\n\tPearson Correlation Coefficient: " + df2.format(measures[6]) +
+                "\n\tMean Absolute Percentage Error: " + df2.format(measures[7]) + "%\n\n";
     }
 
     /**
      * Print out performance measures
-     * @param strings name of the metric + value
+     * @param str names of the metrics + values
      * @param columnPredicted index of column over which the evaluation is performed
      */
-    public void printPerformanceMeasures (String[] strings, int columnPredicted) {
-        System.out.println("Performance (Predictions for column " + ANSI_BOLD_ON + ANSI_PURPLE + columnPredicted + ANSI_RESET + ANSI_BOLD_OFF + "):");
-
-        System.out.println(ANSI_BOLD_ON + ANSI_PURPLE);
-        for (String str : strings) {
-            System.out.println("\t" + str);
-        }
-        System.out.println(ANSI_RESET + ANSI_BOLD_OFF + "\n");
+    public void printPerformanceMeasures (String str, int columnPredicted) {
+        System.out.print("Performance (Predictions for column " + ANSI_BOLD_ON + ANSI_PURPLE + columnPredicted + ANSI_RESET + ANSI_BOLD_OFF + "):");
+        System.out.print(ANSI_BOLD_ON + ANSI_PURPLE + str + ANSI_RESET + ANSI_BOLD_OFF);
     }
 
     /**
      * Write performance measures to the output file for statistics
-     * @param strings name of the metric + value
+     * @param str names of the metrics + values
      * @param columnPredicted index of column over which the evaluation is performed
      */
-    public void writeOutputPerformanceMeasures (String[] strings, int columnPredicted) throws IOException {
+    public void writeOutputPerformanceMeasures (String str, int columnPredicted) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt", true));
-        writer.append("\nPerformance (Predictions for column: " + columnPredicted + "):");
-
-        for (String str : strings) {
-            writer.append("\n\t" + str);
-        }
-
-        writer.append("\n\n");
+        writer.append("\nPerformance (Predictions for column: " + columnPredicted + "):").append(str);
         writer.close();
     }
 
