@@ -5,7 +5,6 @@ import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
-import jsat.math.DescriptiveStatistics;
 import jsat.math.SimpleLinearRegression;
 import jsat.regression.MultipleLinearRegression;
 import jsat.regression.RegressionDataSet;
@@ -21,7 +20,7 @@ import java.text.DecimalFormat;
 import java.util.*;
 
 import static com.company.utils.ColorFormatPrint.*;
-import static com.company.utils.PerformanceMeasures.*;
+import static com.company.utils.MathCalculations.*;
 import static com.company.utils.PerformanceMeasures.meanAbsolutePercentageError;
 
 public class ImputationMethods {
@@ -56,8 +55,8 @@ public class ImputationMethods {
 					impute(dp, columnPredicted);
 				}
 			} else {
-				int[] indexes = DatasetManipulation.getIndexesOfNull(dp);
-				if (DatasetManipulation.getIntersection(indexes, columnPredictors).length != 0) {
+				int[] indexes = getIndexesOfNull(dp);
+				if (getIntersection(indexes, columnPredictors).length != 0) {
 					skipped++;
 					if (!printOnlyFinal) {
 						System.out.println(ANSI_RED_BACKGROUND + "Predictor cannot be predicted -- skip" + ANSI_RESET + "\n\n");
@@ -76,7 +75,7 @@ public class ImputationMethods {
 		evaluateFinal();
 	}
 
-	public void impute (DataPoint dp, int columnPredicted) throws IOException {
+	public void impute (DataPoint dp, int columnPredicted) {
 
 		ArrayList<SimpleDataSet> datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors);
 
@@ -105,8 +104,8 @@ public class ImputationMethods {
 				int order = DatasetManipulation.getPolynomialOrder(datasets.get(0), columnPredicted, columnPredictors[0]);
 				if (order != -1) {
 					PolynomialCurveFitterApache(columnPredicted, columnPredictors[0], datasets, order);
-				} else {
-					GaussianCurveFitterApache(columnPredicted, columnPredictors[0], datasets);
+//				} else {
+//					GaussianCurveFitterApache(columnPredicted, columnPredictors[0], datasets);
 				}
 			}
 		}
@@ -282,15 +281,17 @@ public class ImputationMethods {
 		}
 
 		PolynomialSplineFunction polynomialSplineFunction = linearInterpolator.interpolate(trainingCopy.getDataMatrix().getColumn(columnPredictor).arrayCopy(), trainingCopy.getDataMatrix().getColumn(columnPredicted).arrayCopy());
-		double[] coeff = polynomialSplineFunction.getKnots();
 
 		if (!printOnlyFinal) {
 			System.out.println("\n" + ANSI_PURPLE_BACKGROUND + "PolynomialCurveFitter (columnPredictor=" + columnPredictor + ")" + ANSI_RESET);
-			System.out.print("Coefficients: [");
-			for (int i = 0; i < coeff.length - 1; i++) {
-				System.out.print(coeff[i] + ",");
-			}
-			System.out.println(coeff[coeff.length - 1] + "]");
+			System.out.println("\n\nPiecewise functions:");
+			Arrays.stream(polynomialSplineFunction.getPolynomials()).forEach(System.out::println);
+//			double[] knots = polynomialSplineFunction.getKnots();
+//			System.out.print("Knots: [");
+//			for (int i = 0; i < knots.length - 1; i++) {
+//				System.out.print(knots[i] + ",");
+//			}
+//			System.out.println(knots[knots.length - 1] + "]");
 		}
 
 		for (DataPoint dp : toBePredicted.getDataPoints()) {
@@ -388,39 +389,6 @@ public class ImputationMethods {
 		return MultipleRegressionJama(columnPredicted, datasets, true, degree);
 	}
 
-	private void printPerformanceMeasures (Vec test, Vec predicted, double meanTraining, String method) throws IOException {
-		System.out.println("Performance (" + method + "):");
-
-		Map<String, String> performanceMeasures = new LinkedHashMap<>();
-		performanceMeasures.put("Mean-Squared Error", df2.format(MSError(test, predicted)));
-		performanceMeasures.put("Root Mean-Squared Error", df2.format(RMSError(test, predicted)));
-		performanceMeasures.put("Mean-Absolute Error", df2.format(meanAbsoluteError(test, predicted)));
-		performanceMeasures.put("Relative-Squared Error", df2.format(relativeSquaredError(test, predicted, meanTraining)));
-		performanceMeasures.put("Root Relative-Squared Error", df2.format(rootRelativeSquaredError(test, predicted, meanTraining) * 100) + "%");
-		performanceMeasures.put("Relative-Absolute Error", df2.format(relativeAbsoluteError(test, predicted, meanTraining) * 100) + "%");
-		performanceMeasures.put("Correlation Coefficient", df2.format(DescriptiveStatistics.sampleCorCoeff(test, predicted)));
-		performanceMeasures.put("Mean Absolute Percentage Error", df2.format(meanAbsolutePercentageError(test, predicted)) + "%");
-
-		for (Map.Entry<String, String> entry : performanceMeasures.entrySet()) {
-			System.out.println(ANSI_BOLD_ON + ANSI_PURPLE + "\t" + entry.getKey() + ": " + entry.getValue() + ANSI_RESET + ANSI_BOLD_OFF);
-		}
-		System.out.println("\n");
-
-		writeOutput(performanceMeasures, method);
-	}
-
-	static private void writeOutput (Map<String, String> performanceMeasures, String method) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt", true));
-		writer.append("\n\n" + method);
-		writer.append("\nPerformance:");
-
-		for (Map.Entry<String, String> entry : performanceMeasures.entrySet()) {
-			writer.append("\n\t" + entry.getKey() + ": " + entry.getValue());
-		}
-		writer.append("\n\n");
-		writer.close();
-	}
-
 	private void evaluate_concat (int columnPredicted, int indexMissing, DataPoint toBePredicted) {
 		if (datasetComplete != null) {
 			ImputedValue value = new ImputedValue(indexMissing, datasetComplete.getDataPoint(indexMissing).getNumericalValues().get(columnPredicted), toBePredicted.getNumericalValues().get(columnPredicted));
@@ -461,38 +429,9 @@ public class ImputationMethods {
 				act.set(i, actual);
 				pred.set(i++, predicted);
 			}
-			printPerformanceMeasures(act, pred, datasetComplete.getDataMatrix().getColumn(columnPredicted).mean(), "Predictions for column " + ANSI_BOLD_ON + ANSI_PURPLE + columnPredicted + ANSI_RESET + ANSI_BOLD_OFF);
+			PerformanceMeasures performanceMeasures = new PerformanceMeasures(act, pred, datasetComplete.getDataMatrix().getColumn(columnPredicted).mean());
+			performanceMeasures.printAndWriteResults(columnPredicted);
 		}
-	}
-
-	private static double polyValue (double[] p, double x0) {
-
-		if (p == null) {
-			return Double.NaN;
-		}
-		if (p.length < 1) {
-			return 0.0;
-		}
-
-		double val = p[p.length - 1];
-
-		for (int i = p.length - 2; i >= 0; i--) {
-			val = val * x0 + p[i];
-		}
-		return val;
-	}
-
-	private static double gaussianValue (double[] p, double x0) {
-
-		if (p == null) {
-			return Double.NaN;
-		}
-		if (p.length < 1) {
-			return 0.0;
-		}
-
-		double x = (x0 - p[1]) / p[2];
-		return p[0] * Math.exp(x * x / -2);
 	}
 
 }

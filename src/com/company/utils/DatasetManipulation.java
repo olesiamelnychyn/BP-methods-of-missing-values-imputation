@@ -1,5 +1,11 @@
 package com.company.utils;
 
+import java.io.*;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.io.CSV;
@@ -7,20 +13,15 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.DescriptiveStatistics;
 
-import static java.lang.Math.*;
-import static jsat.linear.distancemetrics.PearsonDistance.correlation;
-
 import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.apache.commons.math3.linear.LUDecomposition;
 
-import java.io.*;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import static com.company.utils.MathCalculations.*;
+import static java.lang.Math.abs;
+import static jsat.linear.distancemetrics.PearsonDistance.correlation;
+
 
 public class DatasetManipulation {
 
@@ -309,45 +310,4 @@ public class DatasetManipulation {
         System.out.println("\tCorrelation Coefficient: " + DescriptiveStatistics.sampleCorCoeff(dataset.getDataMatrix().getColumn(columnPredictor), dataset.getDataMatrix().getColumn(columnPredicted)) + "\n");
     }
 
-    static private double getPoly (double x, int power) {
-        double y = 0.0;
-        for (int i = 0; i < power; i++) {
-            y += pow(x, i);
-        }
-        return y;
-    }
-
-    static private int getMax (double[] x) {
-        int index = 0;
-        double max = x[0];
-        for (int i = 1; i < x.length; i++) {
-            if (x[i] > max) {
-                max = x[i];
-                index = i;
-            }
-        }
-        return index;
-    }
-
-    static public int[] getIndexesOfNull (DataPoint dp) {
-        Vec vec = dp.getNumericalValues();
-        if (vec.countNaNs() == 0) {
-            return new int[0];
-        }
-        int[] indexes = new int[vec.countNaNs()];
-        int j = 0;
-        for (int i = 0; i < vec.length(); i++) {
-            if (Double.isNaN(vec.get(i))) {
-                indexes[j++] = i;
-            }
-        }
-        return indexes;
-    }
-
-    public static int[] getIntersection (int[] arr1, int[] arr2) {
-        return Arrays.stream(arr1)
-                .distinct()
-                .filter(x -> Arrays.stream(arr2).anyMatch(y -> y == x))
-                .toArray();
-    }
 }

@@ -1,9 +1,90 @@
 package com.company.utils;
 
 import jsat.linear.Vec;
+import jsat.math.DescriptiveStatistics;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.Map;
+
+import static com.company.utils.ColorFormatPrint.*;
+import static com.company.utils.ColorFormatPrint.ANSI_BOLD_OFF;
 import static java.lang.Math.*;
 
 public class PerformanceMeasures {
+
+    private Vec actual;
+    private Vec predicted;
+    private double meanTraining;
+    protected double[] metrics;
+    DecimalFormat df2 = new DecimalFormat("#.##");
+
+    public PerformanceMeasures (Vec actual, Vec precicted, double meanTraining) {
+        this.actual = actual;
+        this.predicted = precicted;
+        this.meanTraining = meanTraining;
+        calcMetrics();
+    }
+
+    public double[] getMetrics () {
+        return metrics;
+    }
+
+    private void calcMetrics () {
+        metrics = new double[]{
+                MSError(actual, predicted),
+                RMSError(actual, predicted),
+                meanAbsoluteError(actual, predicted),
+                relativeSquaredError(actual, predicted, meanTraining),
+                rootRelativeSquaredError(actual, predicted, meanTraining),
+                relativeAbsoluteError(actual, predicted, meanTraining),
+                DescriptiveStatistics.sampleCorCoeff(actual, predicted),
+                meanAbsolutePercentageError(actual, predicted)
+        };
+    }
+
+    public void printAndWriteResults (int columnPredicted) throws IOException {
+        String[] strings = getStrings();
+        printPerformanceMeasures(strings, columnPredicted);
+        writeOutputPerformanceMeasures(strings, columnPredicted);
+    }
+
+    public String[] getStrings () {
+        return new String[]{
+                "Mean-Squared Error: " + df2.format(metrics[0]),
+                "Root Mean-Squared Error:" + df2.format(metrics[1]),
+                "Mean-Absolute Error: " + df2.format(metrics[2]),
+                "Relative-Squared Error: " + df2.format(metrics[3]),
+                "Root Relative-Squared Error: " + df2.format(metrics[4]) + "%",
+                "Relative-Absolute Error: " + df2.format(metrics[5]) + "%",
+                "Pearson Correlation Coefficient: " + df2.format(metrics[6]),
+                "Mean Absolute Percentage Error: " + df2.format(metrics[7]) + "%"
+        };
+    }
+
+    public void printPerformanceMeasures (String[] strings, int columnPredicted) {
+        System.out.println("Performance (Predictions for column " + ANSI_BOLD_ON + ANSI_PURPLE + columnPredicted + ANSI_RESET + ANSI_BOLD_OFF + "):");
+
+        System.out.println(ANSI_BOLD_ON + ANSI_PURPLE);
+        for (String str : strings) {
+            System.out.println("\t" + str);
+        }
+        System.out.println(ANSI_RESET + ANSI_BOLD_OFF + "\n");
+    }
+
+    public void writeOutputPerformanceMeasures (String[] strings, int columnPredicted) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt", true));
+        writer.append("\nPerformance (Predictions for column: " + columnPredicted + "):");
+
+        for (String str : strings) {
+            writer.append("\n\t" + str);
+        }
+
+        writer.append("\n\n");
+        writer.close();
+    }
 
     /** Mean-Squared Error
      *
@@ -11,7 +92,7 @@ public class PerformanceMeasures {
      * @param actual original values
      * @return mean-squared error
      */
-    static public double MSError(Vec actual, Vec predicted){
+    static public double MSError (Vec actual, Vec predicted) {
         int n = actual.length();
         double sum = 0.0;
         for (int i = 0; i < n; i++) {
@@ -19,7 +100,7 @@ public class PerformanceMeasures {
             sum += x * x;
         }
 
-        return sum/n;
+        return sum / n;
     }
 
     /** Root Mean-Squared Error
@@ -91,7 +172,7 @@ public class PerformanceMeasures {
             sumBottom += x * x;
         }
 
-        return sqrt(sumTop / sumBottom);
+        return sqrt(sumTop / sumBottom) * 100;
     }
 
     /** Relative-Absolute Error
@@ -110,7 +191,7 @@ public class PerformanceMeasures {
         }
 
 
-        return sumTop / sumBottom;
+        return sumTop / sumBottom * 100;
     }
 
     /** Mean Absolute Percentage Error
