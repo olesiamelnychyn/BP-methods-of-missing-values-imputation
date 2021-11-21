@@ -1,5 +1,8 @@
 package com.company.utils;
 
+/**
+ * class which contains encodings of colorful print
+ */
 public class ColorFormatPrint {
 	public static String ANSI_RESET = "\u001B[0m";
 	public static String ANSI_BLACK = "\u001B[30m";

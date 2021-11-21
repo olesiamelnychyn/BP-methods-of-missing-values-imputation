@@ -4,8 +4,6 @@ import com.company.utils.DatasetManipulation;
 import com.company.utils.ImputationMethods;
 import jsat.SimpleDataSet;
 import jsat.io.CSV;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.nio.file.Paths;
@@ -23,6 +21,9 @@ public class Main {
 		writeOutput(input.datasetMissing);
 	}
 
+	/**
+	 * Class which contains all data that user writes as input
+	 */
 	private static class Input {
 		public SimpleDataSet datasetComplete;
 		public SimpleDataSet datasetMissing;
@@ -36,9 +37,9 @@ public class Main {
 		Input input = new Input();
 		Scanner scanner = new Scanner(System.in);
 
-		System.out.println("Enter first filename (type \"1\" to use test filename)");
+		//file which does not contain missing values and will be used for evaluation
+		System.out.println("Enter filename with complete dataset (type \"1\" to use test filename, skip if there is not one)");
 		String in = scanner.nextLine();
-
 		if ("1".equals(in)) {
 			input.datasetComplete = DatasetManipulation.readDataset("src/com/company/data/combined_csv_new.csv", false);
 		} else if (in == "" || in == null) {
@@ -47,7 +48,8 @@ public class Main {
 			input.datasetComplete = DatasetManipulation.readDataset(in, false);
 		}
 
-		System.out.println("Enter second filename (type \"1\" to use test filename)");
+		//file which contains missing values
+		System.out.println("Enter filename with incomplete dataset (type \"1\" to use test filename)");
 		in = scanner.nextLine();
 		if ("1".equals(in)) {
 			input.datasetMissing = DatasetManipulation.readDataset("src/com/company/data/combined_csv_new_miss.csv", true);
@@ -55,12 +57,14 @@ public class Main {
 			input.datasetMissing = DatasetManipulation.readDataset(scanner.nextLine(), true);
 		}
 
+		//index(es) of column(s) to be predicted
 		System.out.println("Enter index of the column to be predicted (starting from 0) (type -1 to impute all dependent values)");
 		input.columnPredicted = Integer.valueOf(scanner.nextLine());
 		if (input.columnPredicted >= input.datasetComplete.getDataMatrix().cols()) {
 			throw new IndexOutOfBoundsException("Index of predicted column is out of range");
 		}
 
+		//index(es_ of column(s) to be used for predicting
 		System.out.println("Enter index(es) of predictor(s) (starting from 0)"); // src/com/company/data/combined_csv_new_miss.csv
 		String[] predictors = scanner.nextLine().split(" ", -1);
 		int nPredictors = predictors.length;
@@ -79,6 +83,7 @@ public class Main {
 
 		input.columnPredictors = Arrays.copyOfRange(input.columnPredictors, 0, j);
 
+		//boolean which controls the amount of printing out to the output
 		System.out.println("Print only final measures? (0 - no, any other key - yes)");
 		in = scanner.nextLine();
 		if ("0".equals(in)) {
@@ -92,6 +97,7 @@ public class Main {
 
 	private static void writeOutput (SimpleDataSet dataset) throws IOException {
 		Scanner scanner = new Scanner(System.in);
+		//file where to write dataset with imputed values
 		System.out.println("Enter filename of the output file (type \"1\" to use test filename, type \"0\" to skip saving)");
 		String in = scanner.nextLine();
 		if ("1".equals(in)) {

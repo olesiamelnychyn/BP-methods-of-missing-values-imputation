@@ -5,6 +5,9 @@ import jsat.linear.Vec;
 import java.util.Arrays;
 import static java.lang.Math.pow;
 
+/**
+ * Class for common math calculations
+ */
 public class MathCalculations {
 
 	public static double polyValue (double[] p, double x0) {
@@ -37,7 +40,7 @@ public class MathCalculations {
 		return p[0] * Math.exp(x * x / -2);
 	}
 
-	static public double getPoly (double x, int power) {
+	static public double getPolyWithoutCoefficients (double x, int power) {
 		double y = 0.0;
 		for (int i = 0; i < power; i++) {
 			y += pow(x, i);

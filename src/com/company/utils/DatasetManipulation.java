@@ -25,6 +25,14 @@ import static jsat.linear.distancemetrics.PearsonDistance.correlation;
 
 public class DatasetManipulation {
 
+    /** Encode Missingness
+     *
+     * @param filename original filename
+     * @return filename of the dataset with missingness encoded
+     *
+     * This method replaces different representations of missing values in one which is appropriate for jsat.io.CSV.read(),
+     * namely - empty string
+     */
     private static String encodeMissingness (String filename) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filename));
         filename = filename.replace(".csv", "_NULL.csv");
@@ -36,6 +44,7 @@ public class DatasetManipulation {
             String toWrite = "";
             String[] values = line.split(",", -1);
 
+            //values of new line which will be written to csv instead of current
             ArrayList<String> arrayList = new ArrayList();
             for (String value : values) {
                 if ("null".equalsIgnoreCase(value) || "?".equals(value) || ("na").equalsIgnoreCase(value) || ("nan").equalsIgnoreCase(value) || value.length() == 0) {
@@ -57,22 +66,30 @@ public class DatasetManipulation {
         return filename;
     }
 
+    /** Read Dataset
+     *
+     * @param fileName original filename
+     * @param containMissing if it contains missing values
+     * @return dataset read from file
+     *
+     * Reads dataset from file. In case it contains missing values, it firstly encodes missingnes,
+     * so that jsat.io.CSV.read() do not throw exception.
+     */
     static public SimpleDataSet readDataset (String fileName, boolean containMissing) throws IOException {
         if (containMissing) {
             fileName = encodeMissingness(fileName);
         }
 
         SimpleDataSet simpleDataSet = CSV.read(Paths.get(fileName), ',', 0, ' ', new HashSet());
-        List<DataPoint> list = new ArrayList<>();
+        //count number of missing values
         int nans = 0;
         for (DataPoint dp : simpleDataSet.getDataPoints()) {
             if (dp.getNumericalValues().countNaNs() != 0) {
                 nans++;
             }
-            list.add(dp);
         }
         System.out.println("Number of missing values: " + nans);
-        return new SimpleDataSet(list);
+        return simpleDataSet;
     }
 
     static public SimpleDataSet createDeepCopy (SimpleDataSet dataset, int from, int to) {
@@ -85,45 +102,50 @@ public class DatasetManipulation {
         return datasetCopy;
     }
 
-    static public SimpleDataSet createDeepCopy (SimpleDataSet dataset, int from1, int to1, int from2, int to2) {
-        List<DataPoint> ll = new ArrayList<>();
-        ll.add(dataset.getDataPoint(from1++).clone());
-        SimpleDataSet datasetCopy = new SimpleDataSet(ll);
-        for (DataPoint obj : dataset.getDataPoints().subList(from1, to1)) {
-            datasetCopy.add(obj.clone());
-        }
-        for (DataPoint obj : dataset.getDataPoints().subList(from2, to2)) {
-            datasetCopy.add(obj.clone());
-        }
-        return datasetCopy;
-    }
-
+    /** Split dataset
+     *
+     * @param dataset original dataset
+     * @param index index of current record
+     * @param columnPredicted index of column to be predicted
+     * @param columnPredictors index(es) of column(s) to be used for prediction
+     * @return ArrayList of datasets: datasets[0] - training dataset,
+     *                                datasets[1] - dataset to be predicted
+     *
+     * This method splits data records close to the predicted index into those which will be used for the prediction and
+     * those which will be predicted (since they are close to each other, there might be no sense in predicting them separately)
+     */
     static public ArrayList<SimpleDataSet> getToBeImputedAndTrainDeepCopiesAroundIndex (SimpleDataSet dataset, int index, int columnPredicted, int[] columnPredictors) {
-        List<DataPoint> dataPointsTrain = new ArrayList<>();
-        List<DataPoint> dataPointsToBeImputed = new ArrayList<>();
-        int firstIndex = index - 4;
-        int nTraining = 0;
+        List<DataPoint> dataPointsTrain = new ArrayList<>(); //records used for training
+        List<DataPoint> dataPointsToBeImputed = new ArrayList<>();//records in which values should be predicted
+        int firstIndex = index - 4; //index of the first record, by default 4 records before current one
+        int nTraining = 0; //number of records used for training
 
-        dataPointsToBeImputed.add(dataset.getDataPoints().get(index));
-        if (firstIndex != -4) {
-            if (firstIndex < 0) {
+        dataPointsToBeImputed.add(dataset.getDataPoints().get(index)); //current record is always the one to be predicted
+        if (firstIndex != -4) { //if current record is not the first in dataset
+            if (firstIndex < 0) { //if current record is 2nd/3rd
                 firstIndex = 0;
             }
+            //records before current are always assumed to be already complete as we traverse the dataset from beginning
             for (DataPoint obj : dataset.getDataPoints().subList(firstIndex, index)) {
                 dataPointsTrain.add(obj.clone());
                 nTraining++;
             }
         }
 
-        int n = dataset.getSampleSize();
+        int n = dataset.getSampleSize(); //the last index in dataset
+        //filling dataset used for prediction till we have 8 records in it or there are no more records in dataset after current
         for (int i = index + 1; i < n && nTraining < 8; i++) {
             DataPoint obj = dataset.getDataPoint(i);
 
+            //if a record has one or more of the predictors' equal to null it cannot be used for prediction
             if (getIntersection(getIndexesOfNull(obj), columnPredictors).length == 0) {
+                //if record contains value in column which is going to be predicted
+                //then add it to the dataset used for prediction,
                 if (!Double.isNaN(obj.getNumericalValues().get(columnPredicted))) {
                     dataPointsTrain.add(obj.clone());
                     nTraining++;
                 } else {
+                    //otherwise add it to the dataset which is going to be predicted
                     dataPointsToBeImputed.add(obj);
                 }
             }
@@ -135,6 +157,15 @@ public class DatasetManipulation {
         return datasets;
     }
 
+    /** Convert columns of dataset to double[][] array
+     *
+     * @param dataset original dataset
+     * @param columns array of indexes of columns to be present in array
+     * @return reternes converted part of the dataset
+     *
+     * It converts dataset to an array, which contains only values in the specified columns and
+     * additional column as constant that equals to 1
+     */
     static public double[][] toArray (SimpleDataSet dataset, int[] columns) {
         double[][] array = new double[dataset.getSampleSize()][columns.length + 1];
         int i = 0;
@@ -147,12 +178,6 @@ public class DatasetManipulation {
             i++;
         }
         return array;
-    }
-
-    static public void printDataset (SimpleDataSet dataSet) {
-        for (DataPoint dp : dataSet.getDataPoints()) {
-            System.out.println(dp.getNumericalValues());
-        }
     }
 
     static public boolean isStrictlyIncreasing (SimpleDataSet dataSet, int column) {
@@ -199,6 +224,7 @@ public class DatasetManipulation {
         return false;
     }
 
+    //calculate pearson correlation with one predictor
     static public boolean hasLinearRelationship (SimpleDataSet dataSet, int columnPredicted, int columnPredictor) {
         int[] col = new int[]{
                 columnPredicted, columnPredictor
@@ -210,6 +236,7 @@ public class DatasetManipulation {
         return true;
     }
 
+    //calculate pearson correlation with multiple predictors
     static public boolean hasLinearRelationship (SimpleDataSet dataSet, int columnPredicted, int[] columnPredictor) {
 
         int col = columnPredictor.length + 1;
@@ -243,24 +270,31 @@ public class DatasetManipulation {
 
     static public int getPolynomialOrder (SimpleDataSet dataSet, int columnPredicted, int columnPredictor) {
         int n = dataSet.getSampleSize();
+        //create raw polynomials of values in columnPredictor
         double[][] powPred = new double[4][n];
-        for (int i = 0; i < 4; i++) {
-            for (int j = 0; j < n; j++) {
-                double x = dataSet.getDataPoint(i).getNumericalValues().get(columnPredictor);
-                powPred[i][j] = getPoly(x, i);
+        for (int pow = 1; pow < 4; pow++) {
+            for (int index = 0; index < n; index++) {
+                double x = dataSet.getDataPoint(index).getNumericalValues().get(columnPredictor);
+                powPred[pow][index] = getPolyWithoutCoefficients(x, pow);
             }
         }
+        // calculate correlations between raw polynomials and values in columnPredicted
         double[] corr = new double[4];
         for (int i = 0; i < 4; i++) {
             corr[i] = correlation(dataSet.getNumericColumn(columnPredicted), new DenseVector(powPred[i]), true);
         }
-        int iMax = getMax(corr);
+        int iMax = getMax(corr); //choose the best correlation
         if (abs(corr[iMax]) < 0.3) {
             return -1;
         }
         return iMax + 1;
     }
 
+    /** Reverse dataset
+     *
+     * @param dataSet original dataset
+     * @return new reversed dataset
+     */
     static public SimpleDataSet reverseDataset (SimpleDataSet dataSet) {
         ArrayList<DataPoint> list = new ArrayList<>();
         for (int i = dataSet.getSampleSize() - 1; i >= 0; i--) {
@@ -269,17 +303,28 @@ public class DatasetManipulation {
         return new SimpleDataSet(list);
     }
 
+    /** Remove columns of non-predictors
+     *
+     * @param dataset original dataset
+     * @param degree max degree which should be in new dataset used for multiple polynomial regression
+     * @param columnPredicted index of column to be predicted
+     * @param predictors index(es) of column(s) to be used for prediction
+     * @return new dataset which contains columns with powers of values (from 1 to degree)
+     *
+     * This method add columns of predictors' powers to the dataset
+     */
     public static SimpleDataSet addPowerColumns (SimpleDataSet dataset, int degree, int[] predictors, int columnPredicted) {
         List<DataPoint> list = new ArrayList<>();
         for (DataPoint dp : dataset.getDataPoints()) {
+            // new numerical values of a record which look like: [x1 x2... x1^2 x2^2... ... x1^n x2^n...]
             Vec vec = new DenseVector(predictors.length + 1);
             vec.set(columnPredicted, dp.getNumericalValues().get(columnPredicted));
             int next = predictors.length / degree + 1;
             for (int i = 0; i < dataset.getDataMatrix().cols(); i++) {
                 if (i != columnPredicted) {
-                    vec.set(i, dp.getNumericalValues().get(i));
+                    vec.set(i, dp.getNumericalValues().get(i)); //set x
                     for (int j = 2; j <= degree; j++) {
-                        vec.set(next, Math.pow(dp.getNumericalValues().get(i), j));
+                        vec.set(next, Math.pow(dp.getNumericalValues().get(i), j)); //set x^2, ..., x^n
                         next++;
                     }
                 }
@@ -290,9 +335,19 @@ public class DatasetManipulation {
         return new SimpleDataSet(list);
     }
 
+    /** Remove columns of non-predictors
+     *
+     * @param dataset original dataset
+     * @param columnPredicted index of column to be predicted
+     * @param predictors index(es) of column(s) to be used for prediction
+     * @return filename of the dataset with missingness encoded
+     *
+     * This method removes column(s) which is(are) not used for prediction
+     */
     public static SimpleDataSet excludeNonPredictors (SimpleDataSet dataset, int[] predictors, int columnPredicted) {
         List<DataPoint> list = new ArrayList<>();
         for (DataPoint dp : dataset.getDataPoints()) {
+            //new data record which contains only predicted value and values of predictors
             Vec vec = new DenseVector(predictors.length + 1);
             vec.set(0, dp.getNumericalValues().get(columnPredicted));
             int nextIndex = 1;
@@ -304,10 +359,16 @@ public class DatasetManipulation {
         return new SimpleDataSet(list);
     }
 
+    static public void printDataset (SimpleDataSet dataSet) {
+        for (DataPoint dp : dataSet.getDataPoints()) {
+            System.out.println(dp.getNumericalValues());
+        }
+    }
+
     static public void printStatistics (SimpleDataSet dataset, int columnPredictor, int columnPredicted) {
         System.out.println("Statistics:\n\tStandard deviation of predictor: " + dataset.getDataMatrix().getColumn(columnPredictor).standardDeviation());
         System.out.println("\tStandard deviation of predicted: " + dataset.getDataMatrix().getColumn(columnPredicted).standardDeviation());
-        System.out.println("\tCorrelation Coefficient: " + DescriptiveStatistics.sampleCorCoeff(dataset.getDataMatrix().getColumn(columnPredictor), dataset.getDataMatrix().getColumn(columnPredicted)) + "\n");
+        System.out.println("\tPearson Correlation Coefficient: " + DescriptiveStatistics.sampleCorCoeff(dataset.getDataMatrix().getColumn(columnPredictor), dataset.getDataMatrix().getColumn(columnPredicted)) + "\n");
     }
 
 }

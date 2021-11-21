@@ -7,19 +7,17 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.Map;
 
 import static com.company.utils.ColorFormatPrint.*;
 import static com.company.utils.ColorFormatPrint.ANSI_BOLD_OFF;
 import static java.lang.Math.*;
 
 public class PerformanceMeasures {
-
     private Vec actual;
     private Vec predicted;
     private double meanTraining;
     protected double[] metrics;
-    DecimalFormat df2 = new DecimalFormat("#.##");
+    static DecimalFormat df2 = new DecimalFormat("#.##");
 
     public PerformanceMeasures (Vec actual, Vec precicted, double meanTraining) {
         this.actual = actual;
@@ -64,6 +62,11 @@ public class PerformanceMeasures {
         };
     }
 
+    /**
+     * Print out performance measures
+     * @param strings name of the metric + value
+     * @param columnPredicted index of column over which the evaluation is performed
+     */
     public void printPerformanceMeasures (String[] strings, int columnPredicted) {
         System.out.println("Performance (Predictions for column " + ANSI_BOLD_ON + ANSI_PURPLE + columnPredicted + ANSI_RESET + ANSI_BOLD_OFF + "):");
 
@@ -74,6 +77,11 @@ public class PerformanceMeasures {
         System.out.println(ANSI_RESET + ANSI_BOLD_OFF + "\n");
     }
 
+    /**
+     * Write performance measures to the output file for statistics
+     * @param strings name of the metric + value
+     * @param columnPredicted index of column over which the evaluation is performed
+     */
     public void writeOutputPerformanceMeasures (String[] strings, int columnPredicted) throws IOException {
         BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt", true));
         writer.append("\nPerformance (Predictions for column: " + columnPredicted + "):");

@@ -1,5 +1,8 @@
 package com.company.utils;
 
+/**
+ * Class which contains data used for evaluation about one value
+ */
 public class ImputedValue {
 	int index;
 	double actual;

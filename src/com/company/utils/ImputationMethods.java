@@ -16,20 +16,22 @@ import org.apache.commons.math3.fitting.WeightedObservedPoints;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.*;
 
 import static com.company.utils.ColorFormatPrint.*;
 import static com.company.utils.MathCalculations.*;
+import static com.company.utils.PerformanceMeasures.df2;
 import static com.company.utils.PerformanceMeasures.meanAbsolutePercentageError;
 
+/**
+ * This class perform the main logic of the program - predict missing values
+ */
 public class ImputationMethods {
-	int[] columnPredictors;
 	SimpleDataSet datasetComplete;
 	SimpleDataSet datasetMissing;
-	Map<Integer, List<ImputedValue>> values = new HashMap<>();
+	int[] columnPredictors;
+	Map<Integer, List<ImputedValue>> values = new HashMap<>(); //Map of <column, imputedValue>
 	boolean printOnlyFinal;
-	static DecimalFormat df2 = new DecimalFormat("#.##");
 
 	public ImputationMethods (int[] columnPredictors, SimpleDataSet datasetComplete, SimpleDataSet datasetMissing, boolean printOnlyFinal) {
 		this.datasetComplete = datasetComplete;
@@ -40,9 +42,9 @@ public class ImputationMethods {
 
 	public void runImputation (int columnPredicted) throws IOException {
 		int skipped = 0;
-		for (DataPoint dp : datasetMissing.getDataPoints()) {
+		for (DataPoint dp : datasetMissing.getDataPoints()) { //traverse dataset one by one
 
-			if (columnPredicted != -1) {
+			if (columnPredicted != -1) { //if column to be imputed is specified
 				for (int i : columnPredictors) {
 					if (i == columnPredicted) {
 						if (!printOnlyFinal) {
@@ -54,7 +56,7 @@ public class ImputationMethods {
 				if (Double.isNaN(dp.getNumericalValues().get(columnPredicted))) {
 					impute(dp, columnPredicted);
 				}
-			} else {
+			} else { //all columns should be imputed
 				int[] indexes = getIndexesOfNull(dp);
 				if (getIntersection(indexes, columnPredictors).length != 0) {
 					skipped++;
@@ -77,37 +79,41 @@ public class ImputationMethods {
 
 	public void impute (DataPoint dp, int columnPredicted) {
 
+		//split dataset into training and the one to be imputed
 		ArrayList<SimpleDataSet> datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors);
 
-		if (columnPredictors.length > 1) {
+		if (columnPredictors.length > 1) { //if it is multiple regression
 			if (DatasetManipulation.hasLinearRelationship(datasets.get(0), columnPredicted, columnPredictors)) {
 				MultipleLinearRegressionJama(columnPredicted, datasets);
+				return;
 			} else {
-//				if (!MultiplePolynomialRegressionJama(index, 6, 6, 4)) {
-//					if (!MultiplePolynomialRegressionJama(index, 6, 6, 3)) {
 				MultiplePolynomialRegressionJama(columnPredicted, datasets, 2);
-//					}
-//				}
+				return;
 			}
-		} else {
+		} else { //if it is simple regression (only one predictor)
 			if (DatasetManipulation.isCloseToMean(datasets.get(0), columnPredicted)) {
 				MeanImputation(columnPredicted, datasets);
+				return;
 			} else if (DatasetManipulation.isCloseToMedian(datasets.get(0), columnPredicted)) {
 				MedianImputation(columnPredicted, datasets);
+				return;
 			} else if (DatasetManipulation.isStrictlyIncreasing(datasets.get(0), columnPredicted) && DatasetManipulation.isStrictlyIncreasing(datasets.get(0), columnPredictors[0])) {
 				LinearInterpolatorApache(columnPredicted, columnPredictors[0], datasets, true);
+				return;
 			} else if (DatasetManipulation.isStrictlyDecreasing(datasets.get(0), columnPredicted) && DatasetManipulation.isStrictlyDecreasing(datasets.get(0), columnPredictors[0])) {
 				LinearInterpolatorApache(columnPredicted, columnPredictors[0], datasets, false);
+				return;
 			} else if (DatasetManipulation.hasLinearRelationship(datasets.get(0), columnPredicted, columnPredictors[0])) {
 				LinearRegressionJSAT(columnPredicted, columnPredictors[0], datasets);
+				return;
 			} else {
 				int order = DatasetManipulation.getPolynomialOrder(datasets.get(0), columnPredicted, columnPredictors[0]);
 				if (order != -1) {
 					PolynomialCurveFitterApache(columnPredicted, columnPredictors[0], datasets, order);
-//				} else {
-//					GaussianCurveFitterApache(columnPredicted, columnPredictors[0], datasets);
+					return;
 				}
 			}
+			MeanImputation(columnPredicted, datasets); //default solution if everything fails to meet conditions
 		}
 	}
 
@@ -276,6 +282,7 @@ public class ImputationMethods {
 
 		LinearInterpolator linearInterpolator = new LinearInterpolator();
 
+		// if values are decreasing than reverse dataset
 		if (!increasing) {
 			trainingCopy = DatasetManipulation.reverseDataset(trainingCopy);
 		}
@@ -343,6 +350,7 @@ public class ImputationMethods {
 
 		int[] predictors = Arrays.copyOf(columnPredictors, columnPredictors.length);
 
+		// if it is polynomial regression change dataset by adding power columns
 		if (polynomial) {
 			if (!printOnlyFinal) {
 				System.out.println("Polynomial degree: " + degree);
@@ -390,6 +398,7 @@ public class ImputationMethods {
 	}
 
 	private void evaluate_concat (int columnPredicted, int indexMissing, DataPoint toBePredicted) {
+		//if there is no complete dataset, there won't be any evaluation
 		if (datasetComplete != null) {
 			ImputedValue value = new ImputedValue(indexMissing, datasetComplete.getDataPoint(indexMissing).getNumericalValues().get(columnPredicted), toBePredicted.getNumericalValues().get(columnPredicted));
 			if (values.containsKey(columnPredicted)) {
@@ -408,12 +417,18 @@ public class ImputationMethods {
 		}
 	}
 
+	/**Final evaluation
+	 * @throws IOException
+	 *
+	 * Performs evaluation of all predicted values
+	 */
 	private void evaluateFinal () throws IOException {
 		System.out.println("\n" + ANSI_PURPLE_BACKGROUND + "Results" + ANSI_RESET + "\n");
 		BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt"));
 		writer.write("Results:\n");
 		writer.close();
 
+		// separate evaluation by columns
 		for (Map.Entry<Integer, List<ImputedValue>> entry : values.entrySet()) {
 			List<ImputedValue> list = entry.getValue();
 			int columnPredicted = entry.getKey();
