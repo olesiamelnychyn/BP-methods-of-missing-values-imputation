@@ -206,7 +206,7 @@ public class DatasetManipulation {
     static public boolean isCloseToMean (SimpleDataSet dataSet, int columnPredicted) {
         double std = dataSet.getDataMatrix().getColumn(columnPredicted).standardDeviation();
         double mean = dataSet.getDataMatrix().getColumn(columnPredicted).mean();
-        if (std / mean <= 0.35) {
+        if (std / mean <= 0.41) {
             return true;
         }
         return false;
@@ -218,7 +218,7 @@ public class DatasetManipulation {
         for (DataPoint dp : dataSet.getDataPoints()) {
             dist += abs(dp.getNumericalValues().get(columnPredicted) - median);
         }
-        if (dist / 8 / median <= 0.2) {
+        if (dist / 8 / median <= 0.23) {
             return true;
         }
         return false;
@@ -230,7 +230,7 @@ public class DatasetManipulation {
                 columnPredicted, columnPredictor
         };
         double corr = correlation(dataSet.getNumericColumn(columnPredicted), dataSet.getNumericColumn(columnPredictor), true);
-        if (abs(corr) < 0.4) {
+        if (abs(corr) < 0.368) {
             return false;
         }
         return true;
@@ -272,7 +272,7 @@ public class DatasetManipulation {
         int n = dataSet.getSampleSize();
         //create raw polynomials of values in columnPredictor
         double[][] powPred = new double[4][n];
-        for (int pow = 1; pow < 4; pow++) {
+        for (int pow = 0; pow < 4; pow++) {
             for (int index = 0; index < n; index++) {
                 double x = dataSet.getDataPoint(index).getNumericalValues().get(columnPredictor);
                 powPred[pow][index] = getPolyWithoutCoefficients(x, pow);
@@ -280,11 +280,11 @@ public class DatasetManipulation {
         }
         // calculate correlations between raw polynomials and values in columnPredicted
         double[] corr = new double[4];
-        for (int i = 0; i < 4; i++) {
-            corr[i] = correlation(dataSet.getNumericColumn(columnPredicted), new DenseVector(powPred[i]), true);
+        for (int pow = 1; pow < 4; pow++) {
+            corr[pow] = correlation(dataSet.getNumericColumn(columnPredicted), new DenseVector(powPred[pow]), true);
         }
         int iMax = getMax(corr); //choose the best correlation
-        if (abs(corr[iMax]) < 0.3) {
+        if (abs(corr[iMax]) < 0.3265) {
             return -1;
         }
         return iMax + 1;
@@ -366,9 +366,16 @@ public class DatasetManipulation {
     }
 
     static public void printStatistics (SimpleDataSet dataset, int columnPredictor, int columnPredicted) {
-        System.out.println("Statistics:\n\tStandard deviation of predictor: " + dataset.getDataMatrix().getColumn(columnPredictor).standardDeviation());
-        System.out.println("\tStandard deviation of predicted: " + dataset.getDataMatrix().getColumn(columnPredicted).standardDeviation());
-        System.out.println("\tPearson Correlation Coefficient: " + DescriptiveStatistics.sampleCorCoeff(dataset.getDataMatrix().getColumn(columnPredictor), dataset.getDataMatrix().getColumn(columnPredicted)) + "\n");
+        System.out.println("Statistics of predicted value:");
+        System.out.println("\tMin: " + dataset.getDataMatrix().getColumn(columnPredicted).min());
+        System.out.println("\tMax: " + dataset.getDataMatrix().getColumn(columnPredicted).max());
+        System.out.println("\tMean: " + dataset.getDataMatrix().getColumn(columnPredicted).mean());
+        System.out.println("\tMedian: " + dataset.getDataMatrix().getColumn(columnPredicted).median());
+        System.out.println("\tVariance: " + dataset.getDataMatrix().getColumn(columnPredicted).variance());
+        System.out.println("\tStandard deviation: " + dataset.getDataMatrix().getColumn(columnPredicted).standardDeviation());
+        System.out.println("\tKurtosis: " + dataset.getDataMatrix().getColumn(columnPredicted).kurtosis());
+        System.out.println("\tSkewness: " + dataset.getDataMatrix().getColumn(columnPredicted).skewness());
+        System.out.println("\tPearson Correlation Coefficient with predictor: " + DescriptiveStatistics.sampleCorCoeff(dataset.getDataMatrix().getColumn(columnPredictor), dataset.getDataMatrix().getColumn(columnPredicted)) + "\n");
     }
 
 }

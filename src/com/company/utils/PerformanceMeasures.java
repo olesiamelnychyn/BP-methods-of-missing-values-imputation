@@ -51,7 +51,7 @@ public class PerformanceMeasures {
 
     public String toString () {
         return "\n\n\tMean-Squared Error: " + df2.format(measures[0]) +
-                "\n\tRoot Mean-Squared Error:" + df2.format(measures[1]) +
+                "\n\tRoot Mean-Squared Error: " + df2.format(measures[1]) +
                 "\n\tMean-Absolute Error: " + df2.format(measures[2]) +
                 "\n\tRelative-Squared Error: " + df2.format(measures[3]) +
                 "\n\tRoot Relative-Squared Error: " + df2.format(measures[4]) + "%" +

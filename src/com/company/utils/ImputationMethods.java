@@ -446,6 +446,7 @@ public class ImputationMethods {
 			}
 			PerformanceMeasures performanceMeasures = new PerformanceMeasures(act, pred, datasetComplete.getDataMatrix().getColumn(columnPredicted).mean());
 			performanceMeasures.printAndWriteResults(columnPredicted);
+			DatasetManipulation.printStatistics(datasetComplete, columnPredictors[0], columnPredicted);
 		}
 	}
 

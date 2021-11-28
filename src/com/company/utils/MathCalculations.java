@@ -3,6 +3,7 @@ package com.company.utils;
 import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
 import java.util.Arrays;
+import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 
 /**
@@ -52,7 +53,7 @@ public class MathCalculations {
 		int index = 0;
 		double max = x[0];
 		for (int i = 1; i < x.length; i++) {
-			if (x[i] > max) {
+			if (abs(x[i]) > abs(max)) {
 				max = x[i];
 				index = i;
 			}
