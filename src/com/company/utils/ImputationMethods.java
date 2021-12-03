@@ -1,6 +1,7 @@
 package com.company.utils;
 
 import com.company.utils.objects.ImputedValue;
+import com.company.utils.objects.PerformanceMeasures;
 import com.company.utils.objects.Statistics;
 import com.company.utils.regressions.*;
 import jsat.SimpleDataSet;
@@ -24,8 +25,8 @@ import java.util.*;
 import static com.company.utils.ColorFormatPrint.*;
 import static com.company.utils.calculations.MathCalculations.*;
 import static com.company.utils.calculations.StatCalculations.*;
-import static com.company.utils.PerformanceMeasures.df2;
-import static com.company.utils.PerformanceMeasures.meanAbsolutePercentageError;
+import static com.company.utils.objects.PerformanceMeasures.df2;
+import static com.company.utils.objects.PerformanceMeasures.meanAbsolutePercentageError;
 
 /**
  * This class perform the main logic of the program - predict missing values
@@ -466,13 +467,11 @@ public class ImputationMethods {
 			Vec pred = new DenseVector(list.size());
 			int i = 0;
 			for (ImputedValue value : list) {
-				double actual = value.actual;
-				double predicted = value.predicted;
 				if (!printOnlyFinal) {
-					System.out.println(actual + " --- " + predicted);
+					System.out.println(value);
 				}
-				act.set(i, actual);
-				pred.set(i++, predicted);
+				act.set(i, value.actual);
+				pred.set(i++, value.predicted);
 			}
 			PerformanceMeasures performanceMeasures = new PerformanceMeasures(act, pred, datasetComplete.getDataMatrix().getColumn(columnPredicted).mean());
 			performanceMeasures.printAndWriteResults(columnPredicted);

@@ -13,4 +13,8 @@ public class ImputedValue {
 		this.actual = actual;
 		this.predicted = predicted;
 	}
+
+	public String toString () {
+		return index + ": " + actual + " --- " + predicted;
+	}
 }

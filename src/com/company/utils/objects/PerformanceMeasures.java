@@ -1,4 +1,4 @@
-package com.company.utils;
+package com.company.utils.objects;
 
 import jsat.linear.Vec;
 import jsat.math.DescriptiveStatistics;
@@ -17,7 +17,7 @@ public class PerformanceMeasures {
     private Vec predicted;
     private double meanTraining;
     protected double[] measures;
-    static DecimalFormat df2 = new DecimalFormat("#.##");
+    public static DecimalFormat df2 = new DecimalFormat("#.##");
 
     public PerformanceMeasures (Vec actual, Vec precicted, double meanTraining) {
         this.actual = actual;
