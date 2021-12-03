@@ -1,8 +1,10 @@
-package com.company.utils;
+package com.company.utils.calculations;
 
 import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
+
 import java.util.Arrays;
+
 import static java.lang.Math.abs;
 import static java.lang.Math.pow;
 
@@ -82,4 +84,12 @@ public class MathCalculations {
 				.filter(x -> Arrays.stream(arr2).anyMatch(y -> y == x))
 				.toArray();
 	}
+
+	public static int[] getDifference (int[] arr1, int[] arr2) {
+		return Arrays.stream(arr1)
+				.distinct()
+				.filter(x -> Arrays.stream(arr2).noneMatch(y -> y == x))
+				.toArray();
+	}
+
 }

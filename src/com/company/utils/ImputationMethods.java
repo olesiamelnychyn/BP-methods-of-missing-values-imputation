@@ -1,5 +1,7 @@
 package com.company.utils;
 
+import com.company.utils.objects.ImputedValue;
+import com.company.utils.objects.Statistics;
 import com.company.utils.regressions.*;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
@@ -13,13 +15,15 @@ import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 import org.apache.commons.math3.fitting.GaussianCurveFitter;
 import org.apache.commons.math3.fitting.PolynomialCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoints;
+
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
 import static com.company.utils.ColorFormatPrint.*;
-import static com.company.utils.MathCalculations.*;
+import static com.company.utils.calculations.MathCalculations.*;
+import static com.company.utils.calculations.StatCalculations.*;
 import static com.company.utils.PerformanceMeasures.df2;
 import static com.company.utils.PerformanceMeasures.meanAbsolutePercentageError;
 
@@ -31,6 +35,7 @@ public class ImputationMethods {
 	SimpleDataSet datasetMissing;
 	int[] columnPredictors;
 	Map<Integer, List<ImputedValue>> values = new HashMap<>(); //Map of <column, imputedValue>
+	Map<Integer, Statistics> statistics = new HashMap<>(); //Map of <column, statistics>
 	boolean printOnlyFinal;
 
 	public ImputationMethods (int[] columnPredictors, SimpleDataSet datasetComplete, SimpleDataSet datasetMissing, boolean printOnlyFinal) {
@@ -40,19 +45,45 @@ public class ImputationMethods {
 		this.printOnlyFinal = printOnlyFinal;
 	}
 
+	private void calcStatistics (int columnPredicted) {
+
+		if (columnPredicted != -1) {
+			Statistics statistic = columnPredictors.length == 1
+					? new Statistics(datasetMissing.getNumericColumn(columnPredicted), datasetMissing.getNumericColumn(columnPredictors[0]))
+					: new Statistics(datasetMissing, columnPredicted, columnPredictors);
+			statistics.put(columnPredicted, statistic);
+		} else {
+			int n = datasetMissing.getNumericColumns().length;
+			int[] arrColumns = new int[n];
+			for (int i = 0; i < n; i++) {
+				arrColumns[i] = i;
+			}
+			int[] predicted = getDifference(arrColumns, columnPredictors);
+			for (int j : predicted) {
+				Statistics statistic = columnPredictors.length == 1
+						? new Statistics(datasetMissing.getNumericColumn(j), datasetMissing.getNumericColumn(columnPredictors[0]))
+						: new Statistics(datasetMissing, j, columnPredictors);
+				statistics.put(j, statistic);
+			}
+		}
+	}
+
 	public void runImputation (int columnPredicted) throws IOException {
+		// check if column predicted is not predicted
+		if (columnPredicted != -1) {
+			for (int i : columnPredictors) {
+				if (i == columnPredicted) {
+					System.out.println("Predictor cannot be predicted -- exit");
+					return;
+				}
+			}
+		}
+		calcStatistics(columnPredicted);
+
 		int skipped = 0;
 		for (DataPoint dp : datasetMissing.getDataPoints()) { //traverse dataset one by one
 
 			if (columnPredicted != -1) { //if column to be imputed is specified
-				for (int i : columnPredictors) {
-					if (i == columnPredicted) {
-						if (!printOnlyFinal) {
-							System.out.println("Predictor cannot be predicted -- exit");
-						}
-						return;
-					}
-				}
 				if (Double.isNaN(dp.getNumericalValues().get(columnPredicted))) {
 					impute(dp, columnPredicted);
 				}
@@ -70,6 +101,7 @@ public class ImputationMethods {
 				}
 			}
 		}
+
 		if (skipped != 0) {
 			System.out.println("Number of records skipped due to absence of predictor : " + skipped);
 		}
@@ -83,31 +115,29 @@ public class ImputationMethods {
 		ArrayList<SimpleDataSet> datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors);
 
 		if (columnPredictors.length > 1) { //if it is multiple regression
-			if (DatasetManipulation.hasLinearRelationship(datasets.get(0), columnPredicted, columnPredictors)) {
+			if (hasLinearRelationship(datasets.get(0), columnPredicted, columnPredictors, statistics.get(columnPredicted).getThresholds()[2])) {
 				MultipleLinearRegressionJama(columnPredicted, datasets);
-				return;
 			} else {
 				MultiplePolynomialRegressionJama(columnPredicted, datasets, 2);
-				return;
 			}
 		} else { //if it is simple regression (only one predictor)
-			if (DatasetManipulation.isCloseToMean(datasets.get(0), columnPredicted)) {
+			if (isCloseToMean(datasets.get(0), columnPredicted, statistics.get(columnPredicted).getThresholds()[0])) {
 				MeanImputation(columnPredicted, datasets);
 				return;
-			} else if (DatasetManipulation.isCloseToMedian(datasets.get(0), columnPredicted)) {
+			} else if (isCloseToMedian(datasets.get(0), columnPredicted, statistics.get(columnPredicted).getThresholds()[1])) {
 				MedianImputation(columnPredicted, datasets);
 				return;
-			} else if (DatasetManipulation.isStrictlyIncreasing(datasets.get(0), columnPredicted) && DatasetManipulation.isStrictlyIncreasing(datasets.get(0), columnPredictors[0])) {
+			} else if (isStrictlyIncreasing(datasets.get(0), columnPredicted) && isStrictlyIncreasing(datasets.get(0), columnPredictors[0])) {
 				LinearInterpolatorApache(columnPredicted, columnPredictors[0], datasets, true);
 				return;
-			} else if (DatasetManipulation.isStrictlyDecreasing(datasets.get(0), columnPredicted) && DatasetManipulation.isStrictlyDecreasing(datasets.get(0), columnPredictors[0])) {
+			} else if (isStrictlyDecreasing(datasets.get(0), columnPredicted) && isStrictlyDecreasing(datasets.get(0), columnPredictors[0])) {
 				LinearInterpolatorApache(columnPredicted, columnPredictors[0], datasets, false);
 				return;
-			} else if (DatasetManipulation.hasLinearRelationship(datasets.get(0), columnPredicted, columnPredictors[0])) {
+			} else if (hasLinearRelationship(datasets.get(0), columnPredicted, columnPredictors[0], statistics.get(columnPredicted).getThresholds()[2])) {
 				LinearRegressionJSAT(columnPredicted, columnPredictors[0], datasets);
 				return;
 			} else {
-				int order = DatasetManipulation.getPolynomialOrder(datasets.get(0), columnPredicted, columnPredictors[0]);
+				int order = getPolynomialOrder(datasets.get(0), columnPredicted, columnPredictors[0], statistics.get(columnPredicted).getThresholds()[3]);
 				if (order != -1) {
 					PolynomialCurveFitterApache(columnPredicted, columnPredictors[0], datasets, order);
 					return;
@@ -446,7 +476,7 @@ public class ImputationMethods {
 			}
 			PerformanceMeasures performanceMeasures = new PerformanceMeasures(act, pred, datasetComplete.getDataMatrix().getColumn(columnPredicted).mean());
 			performanceMeasures.printAndWriteResults(columnPredicted);
-			DatasetManipulation.printStatistics(datasetComplete, columnPredictors[0], columnPredicted);
+			System.out.println(statistics.get(columnPredicted));
 		}
 	}
 

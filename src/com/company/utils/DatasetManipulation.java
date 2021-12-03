@@ -11,17 +11,8 @@ import jsat.classifiers.DataPoint;
 import jsat.io.CSV;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
-import jsat.math.DescriptiveStatistics;
 
-import org.apache.commons.math3.linear.BlockRealMatrix;
-import org.apache.commons.math3.linear.RealMatrix;
-import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
-import org.apache.commons.math3.linear.LUDecomposition;
-
-import static com.company.utils.MathCalculations.*;
-import static java.lang.Math.abs;
-import static jsat.linear.distancemetrics.PearsonDistance.correlation;
-
+import static com.company.utils.calculations.MathCalculations.*;
 
 public class DatasetManipulation {
 
@@ -180,116 +171,6 @@ public class DatasetManipulation {
         return array;
     }
 
-    static public boolean isStrictlyIncreasing (SimpleDataSet dataSet, int column) {
-        double current = dataSet.getDataPoint(0).getNumericalValues().get(column);
-        for (int i = 1; i < dataSet.getSampleSize(); i++) {
-            if (dataSet.getDataPoint(i).getNumericalValues().get(column) < current) {
-                return false;
-            }
-            current = dataSet.getDataPoint(i).getNumericalValues().get(column);
-        }
-        return true;
-    }
-
-    static public boolean isStrictlyDecreasing (SimpleDataSet dataSet, int column) {
-        double current = dataSet.getDataPoint(0).getNumericalValues().get(column);
-        for (int i = 1; i < dataSet.getSampleSize(); i++) {
-
-            if (dataSet.getDataPoint(i).getNumericalValues().get(column) > current) {
-                return false;
-            }
-            current = dataSet.getDataPoint(i).getNumericalValues().get(column);
-        }
-        return true;
-    }
-
-    static public boolean isCloseToMean (SimpleDataSet dataSet, int columnPredicted) {
-        double std = dataSet.getDataMatrix().getColumn(columnPredicted).standardDeviation();
-        double mean = dataSet.getDataMatrix().getColumn(columnPredicted).mean();
-        if (std / mean <= 0.41) {
-            return true;
-        }
-        return false;
-    }
-
-    static public boolean isCloseToMedian (SimpleDataSet dataSet, int columnPredicted) {
-        double dist = 0.0;
-        double median = dataSet.getDataMatrix().getColumn(columnPredicted).median();
-        for (DataPoint dp : dataSet.getDataPoints()) {
-            dist += abs(dp.getNumericalValues().get(columnPredicted) - median);
-        }
-        if (dist / 8 / median <= 0.23) {
-            return true;
-        }
-        return false;
-    }
-
-    //calculate pearson correlation with one predictor
-    static public boolean hasLinearRelationship (SimpleDataSet dataSet, int columnPredicted, int columnPredictor) {
-        int[] col = new int[]{
-                columnPredicted, columnPredictor
-        };
-        double corr = correlation(dataSet.getNumericColumn(columnPredicted), dataSet.getNumericColumn(columnPredictor), true);
-        if (abs(corr) < 0.368) {
-            return false;
-        }
-        return true;
-    }
-
-    //calculate pearson correlation with multiple predictors
-    static public boolean hasLinearRelationship (SimpleDataSet dataSet, int columnPredicted, int[] columnPredictor) {
-
-        int col = columnPredictor.length + 1;
-
-        //count c^T
-        RealMatrix mat = new BlockRealMatrix(dataSet.getSampleSize(), columnPredictor.length + 1);
-        for (int i = 0; i < col - 1; i++) {
-            mat.setColumn(i, dataSet.getDataMatrix().getColumn(columnPredictor[i]).arrayCopy());
-        }
-        mat.setColumn(col - 1, dataSet.getDataMatrix().getColumn(columnPredicted).arrayCopy());
-        PearsonsCorrelation corr = new PearsonsCorrelation(mat);
-        RealMatrix vector = corr.getCorrelationMatrix().getSubMatrix(col - 1, col - 1, 0, corr.getCorrelationMatrix().getColumnDimension() - 2);
-
-        // count Rxx
-        RealMatrix mat1 = new BlockRealMatrix(dataSet.getSampleSize(), columnPredictor.length);
-        for (int i = 0; i < columnPredictor.length; i++) {
-            mat1.setColumn(i, dataSet.getDataMatrix().getColumn(columnPredictor[i]).arrayCopy());
-        }
-        PearsonsCorrelation corr1 = new PearsonsCorrelation(mat1);
-        RealMatrix rxx = corr1.getCorrelationMatrix().scalarMultiply(1 / new LUDecomposition(corr1.getCorrelationMatrix()).getDeterminant());
-
-
-        RealMatrix a = vector.multiply(vector.transpose());
-        RealMatrix b = vector.multiply(rxx).multiply(vector.transpose());
-
-        if (a.getEntry(0, 0) / b.getEntry(0, 0) > 0.45) {
-            return false;
-        }
-        return true;
-    }
-
-    static public int getPolynomialOrder (SimpleDataSet dataSet, int columnPredicted, int columnPredictor) {
-        int n = dataSet.getSampleSize();
-        //create raw polynomials of values in columnPredictor
-        double[][] powPred = new double[4][n];
-        for (int pow = 0; pow < 4; pow++) {
-            for (int index = 0; index < n; index++) {
-                double x = dataSet.getDataPoint(index).getNumericalValues().get(columnPredictor);
-                powPred[pow][index] = getPolyWithoutCoefficients(x, pow);
-            }
-        }
-        // calculate correlations between raw polynomials and values in columnPredicted
-        double[] corr = new double[4];
-        for (int pow = 1; pow < 4; pow++) {
-            corr[pow] = correlation(dataSet.getNumericColumn(columnPredicted), new DenseVector(powPred[pow]), true);
-        }
-        int iMax = getMax(corr); //choose the best correlation
-        if (abs(corr[iMax]) < 0.3265) {
-            return -1;
-        }
-        return iMax + 1;
-    }
-
     /** Reverse dataset
      *
      * @param dataSet original dataset
@@ -363,19 +244,6 @@ public class DatasetManipulation {
         for (DataPoint dp : dataSet.getDataPoints()) {
             System.out.println(dp.getNumericalValues());
         }
-    }
-
-    static public void printStatistics (SimpleDataSet dataset, int columnPredictor, int columnPredicted) {
-        System.out.println("Statistics of predicted value:");
-        System.out.println("\tMin: " + dataset.getDataMatrix().getColumn(columnPredicted).min());
-        System.out.println("\tMax: " + dataset.getDataMatrix().getColumn(columnPredicted).max());
-        System.out.println("\tMean: " + dataset.getDataMatrix().getColumn(columnPredicted).mean());
-        System.out.println("\tMedian: " + dataset.getDataMatrix().getColumn(columnPredicted).median());
-        System.out.println("\tVariance: " + dataset.getDataMatrix().getColumn(columnPredicted).variance());
-        System.out.println("\tStandard deviation: " + dataset.getDataMatrix().getColumn(columnPredicted).standardDeviation());
-        System.out.println("\tKurtosis: " + dataset.getDataMatrix().getColumn(columnPredicted).kurtosis());
-        System.out.println("\tSkewness: " + dataset.getDataMatrix().getColumn(columnPredicted).skewness());
-        System.out.println("\tPearson Correlation Coefficient with predictor: " + DescriptiveStatistics.sampleCorCoeff(dataset.getDataMatrix().getColumn(columnPredictor), dataset.getDataMatrix().getColumn(columnPredicted)) + "\n");
     }
 
 }

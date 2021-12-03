@@ -1,12 +1,12 @@
-package com.company.utils;
+package com.company.utils.objects;
 
 /**
  * Class which contains data used for evaluation about one value
  */
 public class ImputedValue {
-	int index;
-	double actual;
-	double predicted;
+	public int index;
+	public double actual;
+	public double predicted;
 
 	public ImputedValue (int index, double actual, double predicted) {
 		this.index = index;
