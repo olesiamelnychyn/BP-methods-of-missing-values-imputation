@@ -5,16 +5,22 @@ import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.DescriptiveStatistics;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 import static com.company.utils.calculations.StatCalculations.getCorrMultiple;
 import static java.lang.Math.abs;
 
 public class Statistics {
-	private double min;
-	private double max;
+	public int columnPredicted;
+	public int[] columnPredictors;
+
+	private double[] percentiles;
 	private double mean;
-	private double median;
 	private double variance;
 	private double standardDeviation;
 	private double kurtosis;
@@ -24,34 +30,51 @@ public class Statistics {
 	private double minDiff;
 	private double[] thresholds;
 
-	public Statistics (Vec columnPredicted, Vec columnPredictor) {
-		Vec column = removeNans(columnPredicted);
-		Vec[] cols = removePairNans(columnPredicted, columnPredictor);
+	public Statistics (SimpleDataSet dataSet, int columnPredicted, int columnPredictor) {
+		this.columnPredicted = columnPredicted;
+		this.columnPredictors = new int[]{columnPredictor};
+		Vec columnPredict = dataSet.getDataMatrix().getColumn(columnPredicted);
+		Vec columnTrain = dataSet.getDataMatrix().getColumn(columnPredictor);
 
-		calcBasic(column);
-		calcDiffs(columnPredicted);
+		calcBasic(removeNans(columnPredict));
+		calcDiffs(removeOutliers(columnPredict, percentiles[2], percentiles[6]));
+
+		Vec[] cols = removePairNans(columnPredict, columnTrain);
 		correlation = DescriptiveStatistics.sampleCorCoeff(cols[0], cols[1]);
 
 		calcThresholds(false);
 	}
 
-	public Statistics (SimpleDataSet dataSet, int columnPredicted, int[] columnPredictor) {
+	public Statistics (SimpleDataSet dataSet, int columnPredicted, int[] columnPredictors) {
+		this.columnPredicted = columnPredicted;
+		this.columnPredictors = columnPredictors;
 		Vec columnPredict = dataSet.getDataMatrix().getColumn(columnPredicted);
-		Vec column = removeNans(columnPredict);
 
-		calcBasic(column);
-		calcDiffs(columnPredict);
+		calcBasic(removeNans(columnPredict));
+		calcDiffs(removeOutliers(columnPredict, percentiles[2], percentiles[6]));
 		// TODO: might need NaNs removal
-		correlation = getCorrMultiple(dataSet, columnPredicted, columnPredictor);
+		correlation = getCorrMultiple(dataSet, columnPredicted, columnPredictors);
 
 		calcThresholds(true);
 	}
 
 	private void calcBasic (Vec column) {
-		min = column.min();
-		max = column.max();
+		List<Double> latencies = DoubleStream.of(column.arrayCopy()).boxed().collect(Collectors.toCollection(ArrayList::new));
+		Collections.sort(latencies);
+
+		percentiles = new double[]{
+				getPercentile(latencies, 0),
+				getPercentile(latencies, 15),
+				getPercentile(latencies, 25),
+				getPercentile(latencies, 35),
+				getPercentile(latencies, 50),
+				getPercentile(latencies, 65),
+				getPercentile(latencies, 75),
+				getPercentile(latencies, 85),
+				getPercentile(latencies, 100)
+		};
+
 		mean = column.mean();
-		median = column.median();
 		variance = column.variance();
 		standardDeviation = column.standardDeviation();
 		kurtosis = column.kurtosis();
@@ -68,6 +91,22 @@ public class Statistics {
 		return new DenseVector(
 				Arrays.stream(column.arrayCopy())
 						.filter(x -> !Double.isNaN(x))
+						.toArray()
+		);
+	}
+
+	/**
+	 * Remove entries below percentile1 and above percentile2
+	 *
+	 * @param column
+	 * @param percentile1
+	 * @param percentile2
+	 * @return vector with values between percentile1 and percentile2
+	 */
+	private DenseVector removeOutliers (Vec column, double percentile1, double percentile2) {
+		return new DenseVector(
+				Arrays.stream(column.arrayCopy())
+						.filter(x -> x > percentile1 && x < percentile2)
 						.toArray()
 		);
 	}
@@ -105,8 +144,8 @@ public class Statistics {
 	 */
 	private void calcDiffs (Vec column) {
 		int n = column.length();
-		minDiff = abs(max);
-		maxDiff = abs(min);
+		minDiff = abs(percentiles[8]);
+		maxDiff = abs(percentiles[0]);
 		for (int i = 1; i < n; i++) {
 			double a = column.get(i);
 			if (Double.isNaN(a)) { // skip next entry, since the difference cannot be count
@@ -119,9 +158,6 @@ public class Statistics {
 			}
 			double diff = abs(a - b);
 			if (diff < minDiff) {
-				if (diff == 0) {
-					System.out.println("Diff: " + a + " " + b);
-				}
 				minDiff = diff;
 				continue;
 			}
@@ -137,21 +173,52 @@ public class Statistics {
 	 * @param multiple whether there are more than one predictor
 	 */
 	private void calcThresholds (boolean multiple) {
+
+		double closeMean;
+		if (standardDeviation / mean > 0.75) {
+			closeMean = 0.3;
+		} else if (standardDeviation / mean > 0.50) {
+			closeMean = 0.5;
+		} else {
+			closeMean = 0.7;
+		}
+
+		double closeMedian;
+		if ((skewness > 1 || skewness < -1) && kurtosis < 0) {
+			closeMedian = 0.5;
+		} else {
+			closeMedian = 0.23;
+		}
+
+		double linearRel = multiple ? 0.45 : 0.368;
+
+		double polynomialOrder = 0.3265;
+
 		thresholds = new double[]{
-				0.41, // for isCloseToMean()
-				0.23, // for isCloseToMedian()
-				multiple ? 0.45 : 0.368, // for hasLinearRelationship()
-				0.3265, // for getPolynomialOrder()
+				closeMean, // for isCloseToMean()
+				closeMedian, // for isCloseToMedian()
+				linearRel, // for hasLinearRelationship()
+				polynomialOrder, // for getPolynomialOrder()
 		};
 	}
 
+	public static double getPercentile (List<Double> latencies, double percentile) {
+		int index = (int) Math.ceil(percentile / 100.0 * latencies.size());
+		return latencies.get(index == 0 ? index : index - 1);
+	}
 
 	public String toString () {
 		return "Statistics of predicted value:" +
-				"\n\tMin: " + min +
-				"\n\tMax: " + max +
 				"\n\tMean: " + mean +
-				"\n\tMedian: " + median +
+				"\n\tMin (0th percentile): " + percentiles[0] +
+				"\n\t15th percentile: " + percentiles[1] +
+				"\n\t25th percentile: " + percentiles[2] +
+				"\n\t35th percentile: " + percentiles[3] +
+				"\n\tMedian (50th percentile): " + percentiles[4] +
+				"\n\t65th percentile: " + percentiles[5] +
+				"\n\t75th percentile: " + percentiles[6] +
+				"\n\t85th percentile: " + percentiles[7] +
+				"\n\tMax (100th percentile): " + percentiles[8] +
 				"\n\tVariance: " + variance +
 				"\n\tStandard deviation: " + standardDeviation +
 				"\n\tKurtosis: " + kurtosis +
@@ -167,20 +234,8 @@ public class Statistics {
 				"\n";
 	}
 
-	public double getMin () {
-		return min;
-	}
-
-	public double getMax () {
-		return max;
-	}
-
 	public double getMean () {
 		return mean;
-	}
-
-	public double getMedian () {
-		return median;
 	}
 
 	public double getVariance () {
@@ -215,4 +270,7 @@ public class Statistics {
 		return thresholds;
 	}
 
+	public double[] getPercentiles () {
+		return percentiles;
+	}
 }
