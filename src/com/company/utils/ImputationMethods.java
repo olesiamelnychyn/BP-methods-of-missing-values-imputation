@@ -79,6 +79,7 @@ public class ImputationMethods {
 				}
 			}
 		}
+		//create Statistics of column/-s
 		calcStatistics(columnPredicted);
 
 		int skipped = 0;

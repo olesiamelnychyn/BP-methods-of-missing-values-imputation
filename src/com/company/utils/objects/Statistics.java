@@ -37,7 +37,7 @@ public class Statistics {
 		Vec columnTrain = dataSet.getDataMatrix().getColumn(columnPredictor);
 
 		calcBasic(removeNans(columnPredict));
-		calcDiffs(removeOutliers(columnPredict, percentiles[2], percentiles[6]));
+		calcDiffs(removeOutliers(columnPredict, percentiles[1], percentiles[7]));
 
 		Vec[] cols = removePairNans(columnPredict, columnTrain);
 		correlation = DescriptiveStatistics.sampleCorCoeff(cols[0], cols[1]);
@@ -51,7 +51,7 @@ public class Statistics {
 		Vec columnPredict = dataSet.getDataMatrix().getColumn(columnPredicted);
 
 		calcBasic(removeNans(columnPredict));
-		calcDiffs(removeOutliers(columnPredict, percentiles[2], percentiles[6]));
+		calcDiffs(removeOutliers(columnPredict, percentiles[1], percentiles[7]));
 		// TODO: might need NaNs removal
 		correlation = getCorrMultiple(dataSet, columnPredicted, columnPredictors);
 
@@ -73,7 +73,7 @@ public class Statistics {
 				getPercentile(latencies, 85),
 				getPercentile(latencies, 100)
 		};
-
+		//TODO: check how is it counted (question of performance)
 		mean = column.mean();
 		variance = column.variance();
 		standardDeviation = column.standardDeviation();
@@ -144,11 +144,11 @@ public class Statistics {
 	 */
 	private void calcDiffs (Vec column) {
 		int n = column.length();
-		minDiff = abs(percentiles[8]);
-		maxDiff = abs(percentiles[0]);
+		minDiff = Double.POSITIVE_INFINITY;
+		maxDiff = Double.NEGATIVE_INFINITY;
 		for (int i = 1; i < n; i++) {
 			double a = column.get(i);
-			if (Double.isNaN(a)) { // skip next entry, since the difference cannot be count
+			if (Double.isNaN(a)) { // skip next entry, since the difference cannot be counted
 				i++;
 				continue;
 			}
