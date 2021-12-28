@@ -1,4 +1,4 @@
-package com.company.utils.regressions;
+package com.company.imputationMethods.regressions;
 
 //  src: https://algs4.cs.princeton.edu/14analysis/PolynomialRegression.java.html
 //  https://math.nist.gov/javanumerics/jama/

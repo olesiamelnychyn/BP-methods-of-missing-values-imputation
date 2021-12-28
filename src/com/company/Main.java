@@ -1,7 +1,6 @@
 package com.company;
 
 import com.company.utils.DatasetManipulation;
-import com.company.utils.ImputationMethods;
 import jsat.SimpleDataSet;
 import jsat.io.CSV;
 import java.io.IOException;
@@ -15,7 +14,7 @@ public class Main {
 	public static void main (String[] args) throws IOException {
 
 		Input input = readInput();
-		ImputationMethods imputationMethods = new ImputationMethods(input.columnPredictors, input.datasetComplete, input.datasetMissing, input.printOnlyFinal);
+		HybridMethod imputationMethods = new HybridMethod(input.columnPredictors, input.datasetComplete, input.datasetMissing, input.printOnlyFinal);
 
 		imputationMethods.runImputation(input.columnPredicted);
 		writeOutput(input.datasetMissing);
@@ -42,7 +41,7 @@ public class Main {
 		String in = scanner.nextLine();
 		if ("1".equals(in)) {
 			input.datasetComplete = DatasetManipulation.readDataset("src/com/company/data/combined_csv_new.csv", false);
-		} else if (in == "" || in == null) {
+		} else if ("".equals(in) || in == null) {
 			input.datasetComplete = null;
 		} else {
 			input.datasetComplete = DatasetManipulation.readDataset(in, false);
@@ -59,7 +58,7 @@ public class Main {
 
 		//index(es) of column(s) to be predicted
 		System.out.println("Enter index of the column to be predicted (starting from 0) (type -1 to impute all dependent values)");
-		input.columnPredicted = Integer.valueOf(scanner.nextLine());
+		input.columnPredicted = Integer.parseInt(scanner.nextLine());
 		if (input.columnPredicted >= input.datasetComplete.getDataMatrix().cols()) {
 			throw new IndexOutOfBoundsException("Index of predicted column is out of range");
 		}
@@ -70,11 +69,11 @@ public class Main {
 		int nPredictors = predictors.length;
 		input.columnPredictors = new int[nPredictors];
 		int j = 0;
-		for (int i = 0; i < nPredictors; i++) {
-			if (Integer.valueOf(predictors[i]) == input.columnPredicted || Integer.valueOf(predictors[i]) >= input.datasetComplete.getDataMatrix().cols()) {
+		for (String predictor : predictors) {
+			if (Integer.parseInt(predictor) == input.columnPredicted || Integer.parseInt(predictor) >= input.datasetComplete.getDataMatrix().cols()) {
 				continue;
 			}
-			input.columnPredictors[j++] = Integer.valueOf(predictors[i]);
+			input.columnPredictors[j++] = Integer.parseInt(predictor);
 		}
 
 		if (j == 0) {
@@ -86,11 +85,7 @@ public class Main {
 		//boolean which controls the amount of printing out to the output
 		System.out.println("Print only final measures? (0 - no, any other key - yes)");
 		in = scanner.nextLine();
-		if ("0".equals(in)) {
-			input.printOnlyFinal = false;
-		} else {
-			input.printOnlyFinal = true;
-		}
+		input.printOnlyFinal = !"0".equals(in);
 
 		return input;
 	}

@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package com.company.utils.regressions;
+package com.company.imputationMethods.regressions;
 
 
 /******************************************************************************
@@ -22,8 +22,6 @@ package com.company.utils.regressions;
 
 import Jama.Matrix;
 import Jama.QRDecomposition;
-
-import java.util.ArrayList;
 
 
 public class MultipleLinearRegressionJama {
