@@ -2,16 +2,10 @@ package com.company;
 
 import com.company.imputationMethods.*;
 import com.company.utils.DatasetManipulation;
-import com.company.utils.objects.ImputedValue;
-import com.company.utils.objects.PerformanceMeasures;
+import com.company.utils.Evaluation;
 import com.company.utils.objects.Statistics;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
-import jsat.linear.DenseVector;
-import jsat.linear.Vec;
-
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -19,21 +13,21 @@ import static com.company.utils.ColorFormatPrint.*;
 import static com.company.utils.calculations.MathCalculations.*;
 import static com.company.utils.calculations.StatCalculations.*;
 import static com.company.utils.objects.PerformanceMeasures.df2;
-import static com.company.utils.objects.PerformanceMeasures.meanAbsolutePercentageError;
 
 /**
  * This class perform the main logic of the program - predict missing values
  */
 public class HybridMethod {
-	SimpleDataSet datasetComplete;
 	SimpleDataSet datasetMissing;
 	int[] columnPredictors;
-	Map<Integer, List<ImputedValue>> values = new HashMap<>(); //Map of <column, imputedValue>
 	Map<Integer, Statistics> statistics = new HashMap<>(); //Map of <column, statistics>
 	boolean printOnlyFinal;
+	Evaluation evaluation = null;
 
 	public HybridMethod (int[] columnPredictors, SimpleDataSet datasetComplete, SimpleDataSet datasetMissing, boolean printOnlyFinal) {
-		this.datasetComplete = datasetComplete;
+		if (datasetComplete != null) {
+			evaluation = new Evaluation(datasetComplete, printOnlyFinal);
+		}
 		this.datasetMissing = datasetMissing;
 		this.columnPredictors = columnPredictors;
 		this.printOnlyFinal = printOnlyFinal;
@@ -101,7 +95,9 @@ public class HybridMethod {
 			System.out.println("Number of records skipped due to absence of predictor : " + skipped);
 		}
 
-		evaluateFinal();
+		if (evaluation != null) {
+			evaluation.evaluateFinal(statistics);
+		}
 	}
 
 	public void impute (DataPoint dp, int columnPredicted) {
@@ -162,64 +158,15 @@ public class HybridMethod {
 				predict(new MeanImputationMethod(columnPredicted, dataSets));
 				continue;
 			}
-			
+
 			dp.getNumericalValues().set(columnPredicted, getFormattedValue(newValue));
-			evaluate_concat(columnPredicted, indexMissing, dp);
+			if (evaluation != null) {
+				evaluation.evaluate_concat(columnPredicted, indexMissing, dp);
+			}
 		}
 
 		if (!printOnlyFinal) {
 			System.out.println("\n");
-		}
-	}
-
-	private void evaluate_concat (int columnPredicted, int indexMissing, DataPoint toBePredicted) {
-		//if there is no complete dataset, there won't be any evaluation
-		if (datasetComplete != null) {
-			ImputedValue value = new ImputedValue(indexMissing, datasetComplete.getDataPoint(indexMissing).getNumericalValues().get(columnPredicted), toBePredicted.getNumericalValues().get(columnPredicted));
-			if (values.containsKey(columnPredicted)) {
-				values.get(columnPredicted).add(value);
-			} else {
-				List<ImputedValue> list = new ArrayList<>();
-				list.add(value);
-				values.put(columnPredicted, list);
-			}
-			if (!printOnlyFinal) {
-				Vec test = new DenseVector(new double[]{value.actual});
-				Vec predicted = new DenseVector(new double[]{value.predicted});
-				System.out.println(value.index + "\t" + value.actual + " --- " + value.predicted);
-				System.out.println("\t" + indexMissing + "\t" + columnPredicted + "\t" + ANSI_BOLD_ON + ANSI_PURPLE + "Mean Absolute Percentage Error: " + df2.format(meanAbsolutePercentageError(test, predicted)) + "%" + ANSI_RESET + ANSI_BOLD_OFF);
-			}
-		}
-	}
-
-	/**Final evaluation
-	 * @throws IOException
-	 *
-	 * Performs evaluation of all predicted values
-	 */
-	private void evaluateFinal () throws IOException {
-		System.out.println("\n" + ANSI_PURPLE_BACKGROUND + "Results" + ANSI_RESET + "\n");
-		BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt"));
-		writer.write("Results:\n");
-		writer.close();
-
-		// separate evaluation by columns
-		for (Map.Entry<Integer, List<ImputedValue>> entry : values.entrySet()) {
-			List<ImputedValue> list = entry.getValue();
-			int columnPredicted = entry.getKey();
-			Vec act = new DenseVector(list.size());
-			Vec pred = new DenseVector(list.size());
-			int i = 0;
-			for (ImputedValue value : list) {
-				if (!printOnlyFinal) {
-					System.out.println(value);
-				}
-				act.set(i, value.actual);
-				pred.set(i++, value.predicted);
-			}
-			PerformanceMeasures performanceMeasures = new PerformanceMeasures(act, pred, datasetComplete.getDataMatrix().getColumn(columnPredicted).mean());
-			performanceMeasures.printAndWriteResults(columnPredicted);
-			System.out.println(statistics.get(columnPredicted));
 		}
 	}
 
