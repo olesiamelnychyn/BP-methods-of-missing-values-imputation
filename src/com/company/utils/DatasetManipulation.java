@@ -2,9 +2,8 @@ package com.company.utils;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
@@ -24,34 +23,26 @@ public class DatasetManipulation {
      * This method replaces different representations of missing values in one which is appropriate for jsat.io.CSV.read(),
      * namely - empty string
      */
-    private static String encodeMissingness (String filename) throws IOException {
+    private static String encodeMissingness (String filename, boolean isZeroMissing) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filename));
         filename = filename.replace(".csv", "_NULL.csv");
-
         BufferedWriter bw = new BufferedWriter(new FileWriter(filename));
 
-        String line = "";
-        while ((line = br.readLine()) != null) {
-            String toWrite = "";
-            String[] values = line.split(",", -1);
-
-            //values of new line which will be written to csv instead of current
-            ArrayList<String> arrayList = new ArrayList();
-            for (String value : values) {
-                if ("null".equalsIgnoreCase(value) || "?".equals(value) || ("na").equalsIgnoreCase(value) || ("nan").equalsIgnoreCase(value) || value.length() == 0) {
-                    arrayList.add("");
-                } else {
-                    arrayList.add(value);
-                }
-            }
-
-            for (String s : arrayList) {
-                toWrite += s + ",";
-            }
-            toWrite = toWrite.substring(0, toWrite.length() - 1);
-            bw.write(toWrite + "\n");
-        }
-
+        int nans = 0;
+        String out = br.lines()
+                .map(l -> l.split(",", -1))
+                .map(arr -> Arrays.stream(arr).map(value ->
+                        ("null".equalsIgnoreCase(value) ||
+                                "?".equals(value) ||
+                                ("na").equalsIgnoreCase(value) ||
+                                ("nan").equalsIgnoreCase(value) ||
+                                value.length() == 0 ||
+                                (isZeroMissing && "0".equals(value))) ?
+                                "" :
+                                value
+                ).collect(Collectors.joining(",")))
+                .collect(Collectors.joining("\n"));
+        bw.write(out);
         br.close();
         bw.close();
         return filename;
@@ -66,9 +57,9 @@ public class DatasetManipulation {
      * Reads dataset from file. In case it contains missing values, it firstly encodes missingnes,
      * so that jsat.io.CSV.read() do not throw exception.
      */
-    static public SimpleDataSet readDataset (String fileName, boolean containMissing) throws IOException {
+    static public SimpleDataSet readDataset (String fileName, boolean containMissing, boolean isZeroMissing) throws IOException {
         if (containMissing) {
-            fileName = encodeMissingness(fileName);
+            fileName = encodeMissingness(fileName, isZeroMissing);
         }
 
         SimpleDataSet simpleDataSet = CSV.read(Paths.get(fileName), ',', 0, ' ', new HashSet());

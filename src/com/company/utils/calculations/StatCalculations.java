@@ -9,6 +9,9 @@ import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static com.company.utils.calculations.MathCalculations.*;
 import static java.lang.Math.abs;
 import static jsat.linear.distancemetrics.PearsonDistance.correlation;
@@ -131,4 +134,27 @@ public class StatCalculations {
 		return a.getEntry(0, 0) / b.getEntry(0, 0);
 	}
 
+	public static Map<Integer, Statistics> calcStatistics (int columnPredicted, int[] columnPredictors, SimpleDataSet datasetMissing) {
+		Map<Integer, Statistics> statistics = new HashMap<>();
+		if (columnPredicted != -1) {
+			Statistics statistic = columnPredictors.length == 1
+					? new Statistics(datasetMissing, columnPredicted, columnPredictors[0])
+					: new Statistics(datasetMissing, columnPredicted, columnPredictors);
+			statistics.put(columnPredicted, statistic);
+		} else {
+			int n = datasetMissing.getNumericColumns().length;
+			int[] arrColumns = new int[n];
+			for (int i = 0; i < n; i++) {
+				arrColumns[i] = i;
+			}
+			int[] predicted = getDifference(arrColumns, columnPredictors);
+			for (int j : predicted) {
+				Statistics statistic = columnPredictors.length == 1
+						? new Statistics(datasetMissing, j, columnPredictors[0])
+						: new Statistics(datasetMissing, j, columnPredictors);
+				statistics.put(j, statistic);
+			}
+		}
+		return statistics;
+	}
 }

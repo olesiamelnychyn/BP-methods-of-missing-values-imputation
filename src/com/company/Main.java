@@ -40,20 +40,24 @@ public class Main {
 		System.out.println("Enter filename with complete dataset (type \"1\" to use test filename, skip if there is not one)");
 		String in = scanner.nextLine();
 		if ("1".equals(in)) {
-			input.datasetComplete = DatasetManipulation.readDataset("src/com/company/data/combined_csv_new.csv", false);
+			input.datasetComplete = DatasetManipulation.readDataset("src/com/company/data/combined_csv_new.csv", false, false);
 		} else if ("".equals(in) || in == null) {
 			input.datasetComplete = null;
 		} else {
-			input.datasetComplete = DatasetManipulation.readDataset(in, false);
+			input.datasetComplete = DatasetManipulation.readDataset(in, false, false);
 		}
+
+		//boolean which controls if 0 should be taken as missing value
+		System.out.println("Should 0 be taken as missing value? (0 - yes, any other key - no)");
+		boolean isZeroMissing = "0".equals(scanner.nextLine());
 
 		//file which contains missing values
 		System.out.println("Enter filename with incomplete dataset (type \"1\" to use test filename)");
 		in = scanner.nextLine();
 		if ("1".equals(in)) {
-			input.datasetMissing = DatasetManipulation.readDataset("src/com/company/data/combined_csv_new_miss.csv", true);
+			input.datasetMissing = DatasetManipulation.readDataset("src/com/company/data/combined_csv_new_miss.csv", true, isZeroMissing);
 		} else {
-			input.datasetMissing = DatasetManipulation.readDataset(scanner.nextLine(), true);
+			input.datasetMissing = DatasetManipulation.readDataset(scanner.nextLine(), true, isZeroMissing);
 		}
 
 		//index(es) of column(s) to be predicted

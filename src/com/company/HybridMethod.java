@@ -3,6 +3,7 @@ package com.company;
 import com.company.imputationMethods.*;
 import com.company.utils.DatasetManipulation;
 import com.company.utils.Evaluation;
+import com.company.utils.calculations.StatCalculations;
 import com.company.utils.objects.Statistics;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
@@ -33,29 +34,6 @@ public class HybridMethod {
 		this.printOnlyFinal = printOnlyFinal;
 	}
 
-	private void calcStatistics (int columnPredicted) {
-
-		if (columnPredicted != -1) {
-			Statistics statistic = columnPredictors.length == 1
-					? new Statistics(datasetMissing, columnPredicted, columnPredictors[0])
-					: new Statistics(datasetMissing, columnPredicted, columnPredictors);
-			statistics.put(columnPredicted, statistic);
-		} else {
-			int n = datasetMissing.getNumericColumns().length;
-			int[] arrColumns = new int[n];
-			for (int i = 0; i < n; i++) {
-				arrColumns[i] = i;
-			}
-			int[] predicted = getDifference(arrColumns, columnPredictors);
-			for (int j : predicted) {
-				Statistics statistic = columnPredictors.length == 1
-						? new Statistics(datasetMissing, j, columnPredictors[0])
-						: new Statistics(datasetMissing, j, columnPredictors);
-				statistics.put(j, statistic);
-			}
-		}
-	}
-
 	public void runImputation (int columnPredicted) throws IOException {
 		// check if column predicted is not predicted
 		if (columnPredicted != -1) {
@@ -67,7 +45,7 @@ public class HybridMethod {
 			}
 		}
 		//create Statistics of column/-s
-		calcStatistics(columnPredicted);
+		statistics = StatCalculations.calcStatistics(columnPredicted, columnPredictors, datasetMissing);
 
 		int skipped = 0;
 		for (DataPoint dp : datasetMissing.getDataPoints()) { //traverse dataset one by one
