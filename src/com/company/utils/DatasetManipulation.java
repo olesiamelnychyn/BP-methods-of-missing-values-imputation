@@ -29,7 +29,6 @@ public class DatasetManipulation {
         filename = filename.replace("data", "data/ignored");
         BufferedWriter bw = new BufferedWriter(new FileWriter(filename));
 
-        int nans = 0;
         String out = br.lines()
                 .map(l -> l.split(",", -1))
                 .map(arr -> Arrays.stream(arr).map(value ->
@@ -63,7 +62,7 @@ public class DatasetManipulation {
             fileName = encodeMissingness(fileName, isZeroMissing);
         }
 
-        SimpleDataSet simpleDataSet = CSV.read(Paths.get(fileName), ',', 0, ' ', new HashSet());
+        SimpleDataSet simpleDataSet = CSV.read(Paths.get(fileName), ',', 0, ' ', new HashSet<>());
         //count number of missing values
         int nans = 0;
         for (DataPoint dp : simpleDataSet.getDataPoints()) {
@@ -85,12 +84,93 @@ public class DatasetManipulation {
         return datasetCopy;
     }
 
+    /** Rank records in dataset by euclidean distance from the main record to be imputed
+     *
+     * @param dataset  original dataset
+     * @param mainDP record where null was found
+     * @param columnPredictors index(es) of column(s) to be used for prediction
+     * @param firstIndex where the search for training records should start
+     * @param index index of mainDp
+     * @return ordered map of records by euclidean from mainDP
+     */
+    static public TreeMap<Double, DataPoint> rankDatasetByEuclideanDistance (SimpleDataSet dataset, DataPoint mainDP, int[] columnPredictors, int firstIndex, int index) {
+        TreeMap<Double, DataPoint> rankedRecords = new TreeMap<>();
+
+        if (firstIndex < index) { // count distance for records before current
+            for (DataPoint dp : dataset.getDataPoints().subList(firstIndex, index - 1)) {
+                if (getIntersection(getIndexesOfNull(dp), columnPredictors).length == 0) { // only if predictors are not null
+                    rankedRecords.put(getEuclideanDistance(mainDP, dp, columnPredictors), dp);
+                }
+            }
+        }
+        // count distance for records after current
+        int lastIndex = Math.min(dataset.getSampleSize(), index + 20);
+        for (DataPoint dp : dataset.getDataPoints().subList(index + 1, lastIndex)) {
+            if (getIntersection(getIndexesOfNull(dp), columnPredictors).length == 0) { // only if predictors are not null
+                rankedRecords.put(getEuclideanDistance(mainDP, dp, columnPredictors), dp);
+            }
+        }
+        return rankedRecords;
+    }
+
     /** Split dataset
      *
      * @param dataset original dataset
      * @param index index of current record
      * @param columnPredicted index of column to be predicted
      * @param columnPredictors index(es) of column(s) to be used for prediction
+     * @param nRecords number of records in training dataset to be returned
+     * @return ArrayList of datasets: datasets[0] - training dataset,
+     *                                datasets[1] - dataset to be predicted
+     *
+     *  This method splits data records close to the predicted ones by euclidean distance into those which will be used for the prediction and
+     *  those which will be predicted (only those which are in close euclidean distance and have missing value belong here)
+     */
+    static public ArrayList<SimpleDataSet> getToBeImputedAndTrainDeepCopiesByClosestDistance (SimpleDataSet dataset, int index, int columnPredicted, int[] columnPredictors, int nRecords) {
+        List<DataPoint> dataPointsTrain = new ArrayList<>(); //records used for training
+        List<DataPoint> dataPointsToBeImputed = new ArrayList<>();//records in which values should be predicted
+        DataPoint mainDP = dataset.getDataPoints().get(index);
+        int firstIndex = index - 20; //index of the first record, by default 4 records before current one
+        int nTraining = 0; //number of records used for training
+
+        dataPointsToBeImputed.add(mainDP); //current record is always the one to be predicted
+        if (firstIndex != -20) { //if current record is not the first in dataset
+            if (firstIndex < 0) { //if current record is 2nd/3rd/etc.
+                firstIndex = 0;
+            }
+        } else { //if current is first -> we start to search for training data from next
+            firstIndex = index + 1;
+        }
+
+        TreeMap<Double, DataPoint> ranked = rankDatasetByEuclideanDistance(dataset, mainDP, columnPredictors, firstIndex, index);
+
+        // split ranked records until training dataset contains nRecords
+        for (DataPoint dp : ranked.values()) {
+            if (Double.isNaN(dp.getNumericalValues().get(columnPredicted))) {
+                dataPointsToBeImputed.add(dp);
+            } else {
+                dataPointsTrain.add(dp);
+                nTraining++;
+                if (nTraining >= nRecords) {
+                    break;
+                }
+            }
+
+        }
+
+        ArrayList<SimpleDataSet> datasets = new ArrayList<>();
+        datasets.add(new SimpleDataSet(dataPointsTrain));
+        datasets.add(new SimpleDataSet(dataPointsToBeImputed));
+        return datasets;
+    }
+
+    /** Split dataset
+     *
+     * @param dataset original dataset
+     * @param index index of current record
+     * @param columnPredicted index of column to be predicted
+     * @param columnPredictors index(es) of column(s) to be used for prediction
+     * @param nRecords number of records in training dataset to be returned
      * @return ArrayList of datasets: datasets[0] - training dataset,
      *                                datasets[1] - dataset to be predicted
      *
@@ -128,7 +208,7 @@ public class DatasetManipulation {
                     dataPointsTrain.add(obj.clone());
                     nTraining++;
                 } else {
-                    //otherwise add it to the dataset which is going to be predicted
+                    //otherwise, add it to the dataset which is going to be predicted
                     dataPointsToBeImputed.add(obj);
                 }
             }

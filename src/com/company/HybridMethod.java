@@ -80,17 +80,19 @@ public class HybridMethod {
 
 	public void impute (DataPoint dp, int columnPredicted) {
 
-		//split dataset into training and the one to be imputed
-		ArrayList<SimpleDataSet> datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors, columnPredictors.length > 1 ? 10 : 8);
+		//training dataset and the one to be imputed
+		ArrayList<SimpleDataSet> datasets;
 		Statistics stat = statistics.get(columnPredicted);
 		ImputationMethod method = null;
 		if (columnPredictors.length > 1) { //if it is multiple regression
+			datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesByClosestDistance(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors, 10);
 			if (hasLinearRelationship(datasets.get(0), stat)) {
 				method = new MultipleRegressionJamaMethod(columnPredicted, datasets, columnPredictors);
 			} else {
 				method = new MultipleRegressionJamaMethod(columnPredicted, datasets, columnPredictors, 2);
 			}
 		} else { //if it is simple regression (only one predictor)
+			datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors, 8);
 			if (isCloseToMean(datasets.get(0), stat)) {
 				method = new MeanImputationMethod(columnPredicted, datasets);
 			} else if (isCloseToMedian(datasets.get(0), stat)) {

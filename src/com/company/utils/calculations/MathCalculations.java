@@ -5,8 +5,7 @@ import jsat.linear.Vec;
 
 import java.util.Arrays;
 
-import static java.lang.Math.abs;
-import static java.lang.Math.pow;
+import static java.lang.Math.*;
 
 /**
  * Class for common math calculations
@@ -90,6 +89,16 @@ public class MathCalculations {
 				.distinct()
 				.filter(x -> Arrays.stream(arr2).noneMatch(y -> y == x))
 				.toArray();
+	}
+
+	public static double getEuclideanDistance (DataPoint dp1, DataPoint dp2, int[] columns) {
+		double sum = 0.0;
+		for (int i : columns) {
+			double diff = dp1.getNumericalValues().get(i) - dp2.getNumericalValues().get(i);
+			sum += diff * diff;
+		}
+
+		return sqrt(sum);
 	}
 
 }

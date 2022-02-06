@@ -19,6 +19,7 @@ for f in all_filenames[:n]:
     print(str(all_filenames.index(f))+" / "+str(n-1))
     df =pd.read_csv(f, header = None, delimiter=";")
     df = df.loc[df[1] == 'ASBA'].drop(columns=[0,1,2,3,4,5,10,13])
+    df = df[df[7]!="  null"]
     df[6]=int((datetime.strptime(f.split(".")[0], '%Y-%m-%d_%H') - date_zero).total_seconds()/3600)
     combined_csv = pd.concat([combined_csv, df])
 
