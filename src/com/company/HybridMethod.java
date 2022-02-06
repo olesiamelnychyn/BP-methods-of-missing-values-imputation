@@ -7,11 +7,16 @@ import com.company.utils.calculations.StatCalculations;
 import com.company.utils.objects.Statistics;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
-import java.io.IOException;
-import java.util.*;
 
-import static com.company.utils.ColorFormatPrint.*;
-import static com.company.utils.calculations.MathCalculations.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import static com.company.utils.ColorFormatPrint.ANSI_RED_BACKGROUND;
+import static com.company.utils.ColorFormatPrint.ANSI_RESET;
+import static com.company.utils.calculations.MathCalculations.getIndexesOfNull;
+import static com.company.utils.calculations.MathCalculations.getIntersection;
 import static com.company.utils.calculations.StatCalculations.*;
 import static com.company.utils.objects.PerformanceMeasures.df2;
 

@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Map;
 
 import static com.company.utils.ColorFormatPrint.*;
-import static com.company.utils.ColorFormatPrint.ANSI_BOLD_OFF;
 import static com.company.utils.objects.PerformanceMeasures.df2;
 import static com.company.utils.objects.PerformanceMeasures.meanAbsolutePercentageError;
 

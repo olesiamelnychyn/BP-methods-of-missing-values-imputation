@@ -1,7 +1,7 @@
 package com.company.imputationMethods;
 
-import com.company.utils.DatasetManipulation;
 import com.company.imputationMethods.regressions.MultipleLinearRegressionJama;
+import com.company.utils.DatasetManipulation;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 

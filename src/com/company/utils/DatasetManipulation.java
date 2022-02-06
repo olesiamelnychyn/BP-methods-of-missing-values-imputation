@@ -1,15 +1,15 @@
 package com.company.utils;
 
-import java.io.*;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.io.CSV;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
+
+import java.io.*;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.company.utils.calculations.MathCalculations.*;
 

@@ -3,6 +3,7 @@ package com.company;
 import com.company.utils.DatasetManipulation;
 import jsat.SimpleDataSet;
 import jsat.io.CSV;
+
 import java.io.IOException;
 import java.io.InvalidObjectException;
 import java.nio.file.Paths;
@@ -18,17 +19,6 @@ public class Main {
 
 		imputationMethods.runImputation(input.columnPredicted);
 		writeOutput(input.datasetMissing);
-	}
-
-	/**
-	 * Class which contains all data that user writes as input
-	 */
-	private static class Input {
-		public SimpleDataSet datasetComplete;
-		public SimpleDataSet datasetMissing;
-		public int columnPredicted;
-		public int[] columnPredictors;
-		public boolean printOnlyFinal;
 	}
 
 	private static Input readInput () throws IOException {
@@ -110,5 +100,16 @@ public class Main {
 		} else {
 			CSV.write(dataset, Paths.get(scanner.nextLine()), ',');
 		}
+	}
+
+	/**
+	 * Class which contains all data that user writes as input
+	 */
+	private static class Input {
+		public SimpleDataSet datasetComplete;
+		public SimpleDataSet datasetMissing;
+		public int columnPredicted;
+		public int[] columnPredictors;
+		public boolean printOnlyFinal;
 	}
 }
