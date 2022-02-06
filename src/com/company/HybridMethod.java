@@ -81,7 +81,7 @@ public class HybridMethod {
 	public void impute (DataPoint dp, int columnPredicted) {
 
 		//split dataset into training and the one to be imputed
-		ArrayList<SimpleDataSet> datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors);
+		ArrayList<SimpleDataSet> datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors, columnPredictors.length > 1 ? 10 : 8);
 		Statistics stat = statistics.get(columnPredicted);
 		ImputationMethod method = null;
 		if (columnPredictors.length > 1) { //if it is multiple regression

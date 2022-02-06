@@ -14,14 +14,15 @@ date_zero = datetime.strptime('2016-01-01_00', '%Y-%m-%d_%H')
 #combine all files in the list
 combined_csv = DataFrame()
 all_filenames.sort()
-n=len(all_filenames)
+n=round(len(all_filenames)/2)
 for f in all_filenames[:n]:
     print(str(all_filenames.index(f))+" / "+str(n-1))
     df =pd.read_csv(f, header = None, delimiter=";")
-    df = df.loc[df[1] == 'ASBA'].drop(columns=[0,1,2,3,4,5,10,13])
+    df = pd.concat([df.loc[df[1] == 'ASBA'] , df.loc[df[1] == 'ASBJ']])
+    df[0]=int((datetime.strptime(f.split(".")[0], '%Y-%m-%d_%H') - date_zero).total_seconds()/3600)
+    df = df.drop(columns=[1,2,5,6,10,13])
     df = df[df[7]!="  null"]
-    df[6]=int((datetime.strptime(f.split(".")[0], '%Y-%m-%d_%H') - date_zero).total_seconds()/3600)
     combined_csv = pd.concat([combined_csv, df])
 
 #export to csv
-combined_csv.to_csv( "../combined_complete.csv", index=False, header=None, encoding='utf-8')
+combined_csv.to_csv( "../combined_multiple_complete.csv", index=False, header=None, encoding='utf-8')

@@ -26,6 +26,7 @@ public class DatasetManipulation {
     private static String encodeMissingness (String filename, boolean isZeroMissing) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filename));
         filename = filename.replace(".csv", "_NULL.csv");
+        filename = filename.replace("data", "data/ignored");
         BufferedWriter bw = new BufferedWriter(new FileWriter(filename));
 
         int nans = 0;
@@ -96,14 +97,14 @@ public class DatasetManipulation {
      * This method splits data records close to the predicted index into those which will be used for the prediction and
      * those which will be predicted (since they are close to each other, there might be no sense in predicting them separately)
      */
-    static public ArrayList<SimpleDataSet> getToBeImputedAndTrainDeepCopiesAroundIndex (SimpleDataSet dataset, int index, int columnPredicted, int[] columnPredictors) {
+    static public ArrayList<SimpleDataSet> getToBeImputedAndTrainDeepCopiesAroundIndex (SimpleDataSet dataset, int index, int columnPredicted, int[] columnPredictors, int nRecords) {
         List<DataPoint> dataPointsTrain = new ArrayList<>(); //records used for training
         List<DataPoint> dataPointsToBeImputed = new ArrayList<>();//records in which values should be predicted
-        int firstIndex = index - 4; //index of the first record, by default 4 records before current one
+        int firstIndex = index - nRecords / 2; //index of the first record, by default 4 records before current one
         int nTraining = 0; //number of records used for training
 
         dataPointsToBeImputed.add(dataset.getDataPoints().get(index)); //current record is always the one to be predicted
-        if (firstIndex != -4) { //if current record is not the first in dataset
+        if (firstIndex != -nRecords / 2) { //if current record is not the first in dataset
             if (firstIndex < 0) { //if current record is 2nd/3rd
                 firstIndex = 0;
             }
@@ -115,8 +116,8 @@ public class DatasetManipulation {
         }
 
         int n = dataset.getSampleSize(); //the last index in dataset
-        //filling dataset used for prediction till we have 8 records in it or there are no more records in dataset after current
-        for (int i = index + 1; i < n && nTraining < 8; i++) {
+        //filling dataset used for prediction till we have nRecords in it or there are no more records in dataset after current
+        for (int i = index + 1; i < n && nTraining < nRecords; i++) {
             DataPoint obj = dataset.getDataPoint(i);
 
             //if a record has one or more of the predictors' equal to null it cannot be used for prediction

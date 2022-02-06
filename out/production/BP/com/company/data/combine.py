@@ -23,4 +23,4 @@ for f in all_filenames[:n]:
     combined_csv = pd.concat([combined_csv, df])
 
 #export to csv
-combined_csv.to_csv( "../combined_csv_new.csv", index=False, header=None, encoding='utf-8')
+combined_csv.to_csv( "../combined_complete.csv", index=False, header=None, encoding='utf-8')

@@ -3,11 +3,11 @@ import pandas as pd
 import random
 
     
-f="/Users/olesia/IdeaProjects/BP-firts-attempt/src/com/company/data/combined_csv_new.csv"
+f="/Users/olesia/IdeaProjects/BP-firts-attempt/src/com/company/data/combined_complete.csv"
 df =pd.read_csv(f, header = None, delimiter=",")
 for idx, row in df.iterrows():
     if random.randint(1,4) == 1:
         df.iat[idx, random.randint(0,5)]= None
 
 # #export to csv
-df.to_csv( "../src/com/company/data/combined_csv_new_miss1.csv", index=False, header=None, encoding='utf-8')
+df.to_csv( "../src/com/company/data/combined_missing.csv", index=False, header=None, encoding='utf-8')

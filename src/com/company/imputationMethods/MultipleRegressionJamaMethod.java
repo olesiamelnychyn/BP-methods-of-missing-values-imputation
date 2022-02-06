@@ -57,7 +57,18 @@ public class MultipleRegressionJamaMethod extends ImputationMethod {
 	}
 
 	public void fit () {
-		multipleLinearRegression = new MultipleLinearRegressionJama(regressionTrainingDataSet, trainingCopy.getDataMatrix().getColumn(0).arrayCopy());
+		try {
+			multipleLinearRegression = new MultipleLinearRegressionJama(regressionTrainingDataSet, trainingCopy.getDataMatrix().getColumn(0).arrayCopy());
+		} catch (RuntimeException e) {
+			if (degree < 5) {
+				System.out.println("Fitting was rerun with a bigger degree due to the exception: " + e.getMessage());
+				degree++;
+				preprocessData();
+				fit();
+			} else {
+				throw e;
+			}
+		}
 	}
 
 	public double predict (DataPoint dp) {

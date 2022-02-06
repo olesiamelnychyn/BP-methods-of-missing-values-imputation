@@ -1,6 +1,4 @@
 /out/
-/src/com/company/data/*_NULL.csv
-/src/com/company/data/imputed.csv
+/src/com/company/data/ignored
 /src/com/company/results.txt
 /out/production/BP/com/company/results.txt
-/src/com/company/data/combined_csv_new_miss1.csv
