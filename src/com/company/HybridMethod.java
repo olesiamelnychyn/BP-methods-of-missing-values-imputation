@@ -24,19 +24,19 @@ import static com.company.utils.objects.PerformanceMeasures.df2;
  * This class perform the main logic of the program - predict missing values
  */
 public class HybridMethod {
+	ConfigManager configManager = ConfigManager.getInstance();
 	SimpleDataSet datasetMissing;
 	int[] columnPredictors;
 	Map<Integer, Statistics> statistics = new HashMap<>(); //Map of <column, statistics>
-	boolean printOnlyFinal;
+	boolean printOnlyFinal = Boolean.parseBoolean(configManager.get("input.printOnlyFinal"));
 	Evaluation evaluation = null;
 
-	public HybridMethod (int[] columnPredictors, SimpleDataSet datasetComplete, SimpleDataSet datasetMissing, boolean printOnlyFinal) {
+	public HybridMethod (int[] columnPredictors, SimpleDataSet datasetComplete, SimpleDataSet datasetMissing) {
 		if (datasetComplete != null) {
 			evaluation = new Evaluation(datasetComplete, printOnlyFinal);
 		}
 		this.datasetMissing = datasetMissing;
 		this.columnPredictors = columnPredictors;
-		this.printOnlyFinal = printOnlyFinal;
 	}
 
 	public void runImputation (int columnPredicted) throws IOException {
@@ -90,7 +90,7 @@ public class HybridMethod {
 		Statistics stat = statistics.get(columnPredicted);
 		ImputationMethod method = null;
 		if (columnPredictors.length > 1) { //if it is multiple regression
-			datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesByClosestDistance(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors, 10, false);
+			datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesByClosestDistance(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors, 10, Boolean.parseBoolean(configManager.get("impute.weighted")));
 			if (hasLinearRelationship(datasets.get(0), stat)) {
 				method = new MultipleLinearRegressionJSATMethod(columnPredicted, datasets, columnPredictors);
 			} else {

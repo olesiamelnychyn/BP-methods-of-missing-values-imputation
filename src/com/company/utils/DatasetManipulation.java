@@ -1,5 +1,6 @@
 package com.company.utils;
 
+import com.company.ConfigManager;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.io.CSV;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 import static com.company.utils.calculations.MathCalculations.*;
 
 public class DatasetManipulation {
+    static ConfigManager configManager = ConfigManager.getInstance();
 
     /** Encode Missingness
      *
@@ -23,7 +25,7 @@ public class DatasetManipulation {
      * This method replaces different representations of missing values in one which is appropriate for jsat.io.CSV.read(),
      * namely - empty string
      */
-    private static String encodeMissingness (String filename, boolean isZeroMissing) throws IOException {
+    private static String encodeMissingness (String filename) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(filename));
         filename = filename.replace(".csv", "_NULL.csv");
         filename = filename.replace("data", "data/ignored");
@@ -37,7 +39,7 @@ public class DatasetManipulation {
                                 ("na").equalsIgnoreCase(value) ||
                                 ("nan").equalsIgnoreCase(value) ||
                                 value.length() == 0 ||
-                                (isZeroMissing && "0".equals(value))) ?
+                                (Boolean.parseBoolean(configManager.get("isZeroMissing")) && "0".equals(value))) ?
                                 "" :
                                 value
                 ).collect(Collectors.joining(",")))
@@ -57,9 +59,9 @@ public class DatasetManipulation {
      * Reads dataset from file. In case it contains missing values, it firstly encodes missingnes,
      * so that jsat.io.CSV.read() do not throw exception.
      */
-    static public SimpleDataSet readDataset (String fileName, boolean containMissing, boolean isZeroMissing) throws IOException {
+    static public SimpleDataSet readDataset (String fileName, boolean containMissing) throws IOException {
         if (containMissing) {
-            fileName = encodeMissingness(fileName, isZeroMissing);
+            fileName = encodeMissingness(fileName);
         }
 
         SimpleDataSet simpleDataSet = CSV.read(Paths.get(fileName), ',', 0, ' ', new HashSet<>());
