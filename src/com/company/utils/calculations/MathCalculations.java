@@ -101,4 +101,8 @@ public class MathCalculations {
 		return sqrt(sum);
 	}
 
+	public static double getWeightByEuclidean (double dist) {
+		return 1 / (dist + 0.01);
+	}
+
 }

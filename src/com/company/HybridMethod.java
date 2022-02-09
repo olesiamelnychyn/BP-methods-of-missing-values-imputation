@@ -90,11 +90,11 @@ public class HybridMethod {
 		Statistics stat = statistics.get(columnPredicted);
 		ImputationMethod method = null;
 		if (columnPredictors.length > 1) { //if it is multiple regression
-			datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesByClosestDistance(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors, 10);
+			datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesByClosestDistance(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors, 10, false);
 			if (hasLinearRelationship(datasets.get(0), stat)) {
-				method = new MultipleRegressionJamaMethod(columnPredicted, datasets, columnPredictors);
+				method = new MultipleLinearRegressionJSATMethod(columnPredicted, datasets, columnPredictors);
 			} else {
-				method = new MultipleRegressionJamaMethod(columnPredicted, datasets, columnPredictors, 2);
+				method = new MultipleLinearRegressionJSATMethod(columnPredicted, datasets, columnPredictors, 2);
 			}
 		} else { //if it is simple regression (only one predictor)
 			datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors, 8);

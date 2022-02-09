@@ -19,9 +19,9 @@ public class PerformanceMeasures {
 	protected double[] measures;
 	public static DecimalFormat df2 = new DecimalFormat("#.##");
 
-	public PerformanceMeasures (Vec actual, Vec precicted, double meanTraining) {
+	public PerformanceMeasures (Vec actual, Vec predicted, double meanTraining) {
 		this.actual = actual;
-		this.predicted = precicted;
+		this.predicted = predicted;
 		this.meanTraining = meanTraining;
 		calcMeasures();
 	}
