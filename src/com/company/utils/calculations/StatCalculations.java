@@ -21,7 +21,7 @@ public class StatCalculations {
 	static public boolean isStrictlyIncreasing (SimpleDataSet dataSet, int column) {
 		double current = dataSet.getDataPoint(0).getNumericalValues().get(column);
 		for (int i = 1; i < dataSet.getSampleSize(); i++) {
-			if (dataSet.getDataPoint(i).getNumericalValues().get(column) < current) {
+			if (Double.compare(dataSet.getDataPoint(i).getNumericalValues().get(column), current) <= 0) {
 				return false;
 			}
 			current = dataSet.getDataPoint(i).getNumericalValues().get(column);
@@ -33,7 +33,7 @@ public class StatCalculations {
 		double current = dataSet.getDataPoint(0).getNumericalValues().get(column);
 		for (int i = 1; i < dataSet.getSampleSize(); i++) {
 
-			if (dataSet.getDataPoint(i).getNumericalValues().get(column) > current) {
+			if (Double.compare(dataSet.getDataPoint(i).getNumericalValues().get(column), current) >= 0) {
 				return false;
 			}
 			current = dataSet.getDataPoint(i).getNumericalValues().get(column);

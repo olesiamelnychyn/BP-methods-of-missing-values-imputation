@@ -1,7 +1,6 @@
 package com.company;
 
 import com.company.imputationMethods.*;
-import com.company.utils.DatasetManipulation;
 import com.company.utils.Evaluation;
 import com.company.utils.calculations.StatCalculations;
 import com.company.utils.objects.Statistics;
@@ -15,9 +14,7 @@ import java.util.Map;
 
 import static com.company.utils.ColorFormatPrint.ANSI_RED_BACKGROUND;
 import static com.company.utils.ColorFormatPrint.ANSI_RESET;
-import static com.company.utils.calculations.MathCalculations.getIndexesOfNull;
-import static com.company.utils.calculations.MathCalculations.getIntersection;
-import static com.company.utils.calculations.StatCalculations.*;
+import static com.company.utils.calculations.MathCalculations.*;
 import static com.company.utils.objects.PerformanceMeasures.df2;
 
 /**
@@ -30,6 +27,8 @@ public class HybridMethod {
 	Map<Integer, Statistics> statistics = new HashMap<>(); //Map of <column, statistics>
 	boolean printOnlyFinal = Boolean.parseBoolean(configManager.get("input.printOnlyFinal"));
 	Evaluation evaluation = null;
+	MultipleImputationMethods multipleImputationMethods;
+	SimpleImputationMethods simpleImputationMethods;
 
 	public HybridMethod (int[] columnPredictors, SimpleDataSet datasetComplete, SimpleDataSet datasetMissing) {
 		if (datasetComplete != null) {
@@ -51,6 +50,9 @@ public class HybridMethod {
 		}
 		//create Statistics of column/-s
 		statistics = StatCalculations.calcStatistics(columnPredicted, columnPredictors, datasetMissing);
+
+		simpleImputationMethods = new SimpleImputationMethods(datasetMissing);
+		multipleImputationMethods = new MultipleImputationMethods(datasetMissing, columnPredictors, Boolean.parseBoolean(configManager.get("impute.weighted")));
 
 		int skipped = 0;
 		for (DataPoint dp : datasetMissing.getDataPoints()) { //traverse dataset one by one
@@ -84,42 +86,10 @@ public class HybridMethod {
 	}
 
 	public void impute (DataPoint dp, int columnPredicted) {
-
-		//training dataset and the one to be imputed
-		ArrayList<SimpleDataSet> datasets;
-		Statistics stat = statistics.get(columnPredicted);
-		ImputationMethod method = null;
 		if (columnPredictors.length > 1) { //if it is multiple regression
-			datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesByClosestDistance(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors, 10, Boolean.parseBoolean(configManager.get("impute.weighted")));
-			if (hasLinearRelationship(datasets.get(0), stat)) {
-				method = new MultipleLinearRegressionJSATMethod(columnPredicted, datasets, columnPredictors);
-			} else {
-				method = new MultipleLinearRegressionJSATMethod(columnPredicted, datasets, columnPredictors, 2);
-			}
+			predict(multipleImputationMethods.imputeMultiple(dp, statistics.get(columnPredicted), columnPredicted));
 		} else { //if it is simple regression (only one predictor)
-			datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors, 8);
-			if (isCloseToMean(datasets.get(0), stat)) {
-				method = new MeanImputationMethod(columnPredicted, datasets);
-			} else if (isCloseToMedian(datasets.get(0), stat)) {
-				method = new MedianImputationMethod(columnPredicted, datasets);
-			} else if (isStrictlyIncreasing(datasets.get(0), columnPredicted) && isStrictlyIncreasing(datasets.get(0), columnPredictors[0])) {
-				method = new LinearInterpolatorApacheMethod(columnPredicted, datasets, columnPredictors[0], true);
-			} else if (isStrictlyDecreasing(datasets.get(0), columnPredicted) && isStrictlyDecreasing(datasets.get(0), columnPredictors[0])) {
-				method = new LinearInterpolatorApacheMethod(columnPredicted, datasets, columnPredictors[0], false);
-			} else if (hasLinearRelationship(datasets.get(0), stat)) {
-				method = new LinearRegressionJSATMethod(columnPredicted, datasets, columnPredictors[0]);
-			} else {
-				int order = getPolynomialOrder(datasets.get(0), stat);
-				if (order != -1) {
-					method = new PolynomialCurveFitterApacheMethod(columnPredicted, datasets, columnPredictors[0], order);
-				}
-			}
-		}
-
-		if (method != null) {
-			predict(method);
-		} else {
-			predict(new MeanImputationMethod(columnPredicted, datasets)); //default solution if everything fails to meet conditions
+			predict(simpleImputationMethods.imputeSimple(columnPredictors[0], dp, columnPredicted, statistics.get(columnPredicted)));
 		}
 	}
 
