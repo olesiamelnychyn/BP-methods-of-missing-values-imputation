@@ -4,6 +4,7 @@ import jsat.classifiers.DataPoint;
 import jsat.linear.Vec;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static java.lang.Math.*;
 
@@ -105,4 +106,14 @@ public class MathCalculations {
 		return 1 / (dist + 0.01);
 	}
 
+	// normalize weight of data points, so they sum up to 1
+	public static void normalizeWeights (List<DataPoint> dataPoints) {
+		double sum = dataPoints
+				.stream()
+				.map(DataPoint::getWeight)
+				.reduce(0.0, Double::sum);
+		if (sum > 0.0) {
+			dataPoints.forEach(dp -> dp.setWeight(dp.getWeight() / sum));
+		}
+	}
 }

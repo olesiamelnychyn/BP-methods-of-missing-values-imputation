@@ -172,6 +172,10 @@ public class DatasetManipulation {
 
         }
 
+        if (weighted) {
+            normalizeWeights(dataPointsTrain);
+        }
+
         ArrayList<SimpleDataSet> datasets = new ArrayList<>();
         datasets.add(new SimpleDataSet(dataPointsTrain));
         datasets.add(new SimpleDataSet(dataPointsToBeImputed));
