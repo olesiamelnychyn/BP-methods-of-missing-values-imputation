@@ -89,7 +89,7 @@ public class HybridMethod {
 		if (columnPredictors.length > 1) { //if it is multiple regression
 			predict(multipleImputationMethods.imputeMultiple(dp, statistics.get(columnPredicted), columnPredicted));
 		} else { //if it is simple regression (only one predictor)
-			predict(simpleImputationMethods.imputeSimple(columnPredictors[0], dp, columnPredicted, statistics.get(columnPredicted)));
+			predict(simpleImputationMethods.imputeSimple(columnPredictors[0], dp, columnPredicted, statistics.get(columnPredicted), null));
 		}
 	}
 

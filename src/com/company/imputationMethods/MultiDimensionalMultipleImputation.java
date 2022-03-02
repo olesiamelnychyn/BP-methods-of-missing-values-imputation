@@ -37,7 +37,7 @@ public class MultiDimensionalMultipleImputation extends ImputationMethod {
 	public void fit () {
 		SimpleImputationMethods simpleImputationMethods = new SimpleImputationMethods(datasetMissing);
 		for (int columnPredictor : columnPredictors) {
-			methods.add(simpleImputationMethods.imputeSimple(columnPredictor, dp, columnPredicted, stat));
+			methods.add(simpleImputationMethods.imputeSimple(columnPredictor, dp, columnPredicted, stat, getDatasets()));
 		}
 	}
 

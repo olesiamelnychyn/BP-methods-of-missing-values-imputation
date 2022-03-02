@@ -1,5 +1,6 @@
 package com.company.imputationMethods;
 
+import com.sun.tools.javac.util.List;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 
@@ -34,5 +35,9 @@ public abstract class ImputationMethod {
 
 	public int getColumnPredicted () {
 		return columnPredicted;
+	}
+
+	public ArrayList<SimpleDataSet> getDatasets () {
+		return new ArrayList<>(List.of(trainingCopy, toBePredicted));
 	}
 }

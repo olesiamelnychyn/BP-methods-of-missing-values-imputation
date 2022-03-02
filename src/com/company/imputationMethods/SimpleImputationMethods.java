@@ -10,15 +10,16 @@ import java.util.ArrayList;
 import static com.company.utils.calculations.StatCalculations.*;
 
 public class SimpleImputationMethods {
-	private ArrayList<SimpleDataSet> datasets;
 	SimpleDataSet datasetMissing;
 
 	public SimpleImputationMethods (SimpleDataSet datasetMissing) {
 		this.datasetMissing = datasetMissing;
 	}
 
-	public ImputationMethod imputeSimple (int columnPredictor, DataPoint dp, int columnPredicted, Statistics stat) {
-		datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, new int[]{columnPredictor}, 8);
+	public ImputationMethod imputeSimple (int columnPredictor, DataPoint dp, int columnPredicted, Statistics stat, ArrayList<SimpleDataSet> datasets) {
+		if (datasets == null) {
+			datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, new int[]{columnPredictor}, 8);
+		}
 
 		if (isCloseToMean(datasets.get(0), stat)) {
 			return new MeanImputationMethod(columnPredicted, datasets);
