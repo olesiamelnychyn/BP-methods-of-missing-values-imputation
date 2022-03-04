@@ -80,22 +80,23 @@ public class MathCalculations {
 
 	public static int[] getIntersection (int[] arr1, int[] arr2) {
 		return Arrays.stream(arr1)
-				.distinct()
-				.filter(x -> Arrays.stream(arr2).anyMatch(y -> y == x))
-				.toArray();
+			.distinct()
+			.filter(x -> Arrays.stream(arr2).anyMatch(y -> y == x))
+			.toArray();
 	}
 
 	public static int[] getDifference (int[] arr1, int[] arr2) {
 		return Arrays.stream(arr1)
-				.distinct()
-				.filter(x -> Arrays.stream(arr2).noneMatch(y -> y == x))
-				.toArray();
+			.distinct()
+			.filter(x -> Arrays.stream(arr2).noneMatch(y -> y == x))
+			.toArray();
 	}
 
-	public static double getEuclideanDistance (DataPoint dp1, DataPoint dp2, int[] columns) {
+	public static double getEuclideanDistance (double[] dp1, double[] dp2) {
 		double sum = 0.0;
-		for (int i : columns) {
-			double diff = dp1.getNumericalValues().get(i) - dp2.getNumericalValues().get(i);
+		int n = dp1.length;
+		for (int i = 0; i < n; i++) {
+			double diff = dp1[i] - dp2[i];
 			sum += diff * diff;
 		}
 
@@ -109,11 +110,26 @@ public class MathCalculations {
 	// normalize weight of data points, so they sum up to 1
 	public static void normalizeWeights (List<DataPoint> dataPoints) {
 		double sum = dataPoints
-				.stream()
-				.map(DataPoint::getWeight)
-				.reduce(0.0, Double::sum);
+			.stream()
+			.map(DataPoint::getWeight)
+			.reduce(0.0, Double::sum);
 		if (sum > 0.0) {
 			dataPoints.forEach(dp -> dp.setWeight(dp.getWeight() / sum));
 		}
+	}
+
+	public static double normalize (double x, double max, double min, double n) {
+		if (Double.compare(min, max) == 0) {
+			return 1 / n;
+		}
+		return (x - min) / (max - min);
+	}
+
+	public static double[] normilizePredictors (DataPoint dp, int[] columnPredictors, double[] sumsForNormalisation, int size) {
+		double[] values = new double[columnPredictors.length];
+		for (int i = 0; i < columnPredictors.length; i++) {
+			values[i] = normalize(dp.getNumericalValues().get(columnPredictors[i]), sumsForNormalisation[i * 2], sumsForNormalisation[i * 2 + 1], size);
+		}
+		return values;
 	}
 }

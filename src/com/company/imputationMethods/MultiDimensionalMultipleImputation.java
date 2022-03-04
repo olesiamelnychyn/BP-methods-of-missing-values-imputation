@@ -1,5 +1,6 @@
 package com.company.imputationMethods;
 
+import com.company.utils.objects.MainData;
 import com.company.utils.objects.Statistics;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
@@ -14,6 +15,7 @@ import static com.company.utils.ColorFormatPrint.ANSI_PURPLE_BACKGROUND;
 import static com.company.utils.ColorFormatPrint.ANSI_RESET;
 
 public class MultiDimensionalMultipleImputation extends ImputationMethod {
+	MainData data;
 	int[] columnPredictors;
 	SimpleDataSet datasetMissing;
 	DataPoint dp;
@@ -21,12 +23,10 @@ public class MultiDimensionalMultipleImputation extends ImputationMethod {
 	ArrayList<ImputationMethod> methods = new ArrayList<>();
 
 
-	public MultiDimensionalMultipleImputation (int columnPredicted, int[] columnPredictors, SimpleDataSet datasetMissing, DataPoint dp, Statistics stat, ArrayList<SimpleDataSet> datasets) {
-		super(columnPredicted, datasets);
-		this.columnPredicted = columnPredicted;
+	public MultiDimensionalMultipleImputation (MainData data, SimpleDataSet datasetMissing, Statistics stat) {
+		super(data);
+		this.data = data;
 		this.datasetMissing = datasetMissing;
-		this.columnPredictors = columnPredictors;
-		this.dp = dp;
 		this.stat = stat;
 	}
 
@@ -37,7 +37,8 @@ public class MultiDimensionalMultipleImputation extends ImputationMethod {
 	public void fit () {
 		SimpleImputationMethods simpleImputationMethods = new SimpleImputationMethods(datasetMissing);
 		for (int columnPredictor : columnPredictors) {
-			methods.add(simpleImputationMethods.imputeSimple(columnPredictor, dp, columnPredicted, stat, getDatasets()));
+			MainData mainData = new MainData(new int[]{columnPredictor}, columnPredicted, data.getDp(), data.getTrain(), data.getImpute());
+			methods.add(simpleImputationMethods.imputeSimple(mainData, stat));
 		}
 	}
 

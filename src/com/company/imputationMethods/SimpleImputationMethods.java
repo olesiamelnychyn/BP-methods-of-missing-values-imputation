@@ -1,11 +1,9 @@
 package com.company.imputationMethods;
 
 import com.company.utils.DatasetManipulation;
+import com.company.utils.objects.MainData;
 import com.company.utils.objects.Statistics;
 import jsat.SimpleDataSet;
-import jsat.classifiers.DataPoint;
-
-import java.util.ArrayList;
 
 import static com.company.utils.calculations.StatCalculations.*;
 
@@ -16,27 +14,28 @@ public class SimpleImputationMethods {
 		this.datasetMissing = datasetMissing;
 	}
 
-	public ImputationMethod imputeSimple (int columnPredictor, DataPoint dp, int columnPredicted, Statistics stat, ArrayList<SimpleDataSet> datasets) {
-		if (datasets == null) {
-			datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, new int[]{columnPredictor}, 8);
+	public ImputationMethod imputeSimple (MainData data, Statistics stat) {
+		if (data.getTrain() == null) {
+			DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(data, datasetMissing, datasetMissing.getDataPoints().indexOf(data.getDp()), 8);
 		}
+		int columnPredictor = data.getColumnPredictors()[0];
 
-		if (isCloseToMean(datasets.get(0), stat)) {
-			return new MeanImputationMethod(columnPredicted, datasets);
-		} else if (isCloseToMedian(datasets.get(0), stat)) {
-			return new MedianImputationMethod(columnPredicted, datasets);
-		} else if (isStrictlyIncreasing(datasets.get(0), columnPredicted) && isStrictlyIncreasing(datasets.get(0), columnPredictor)) {
-			return new LinearInterpolatorApacheMethod(columnPredicted, datasets, columnPredictor, true);
-		} else if (isStrictlyDecreasing(datasets.get(0), columnPredicted) && isStrictlyDecreasing(datasets.get(0), columnPredictor)) {
-			return new LinearInterpolatorApacheMethod(columnPredicted, datasets, columnPredictor, false);
-		} else if (hasLinearRelationship(datasets.get(0), stat)) {
-			return new LinearRegressionJSATMethod(columnPredicted, datasets, columnPredictor);
+		if (isCloseToMean(data.getTrain(), stat)) {
+			return new MeanImputationMethod(data);
+		} else if (isCloseToMedian(data.getTrain(), stat)) {
+			return new MedianImputationMethod(data);
+		} else if (isStrictlyIncreasing(data.getTrain(), data.getColumnPredicted()) && isStrictlyIncreasing(data.getTrain(), columnPredictor)) {
+			return new LinearInterpolatorApacheMethod(data, true);
+		} else if (isStrictlyDecreasing(data.getTrain(), data.getColumnPredicted()) && isStrictlyDecreasing(data.getTrain(), columnPredictor)) {
+			return new LinearInterpolatorApacheMethod(data, false);
+		} else if (hasLinearRelationship(data.getTrain(), stat)) {
+			return new LinearRegressionJSATMethod(data);
 		} else {
-			int order = getPolynomialOrder(datasets.get(0), stat);
+			int order = getPolynomialOrder(data.getTrain(), stat);
 			if (order != -1) {
-				return new PolynomialCurveFitterApacheMethod(columnPredicted, datasets, columnPredictor, order);
+				return new PolynomialCurveFitterApacheMethod(data, order);
 			}
 		}
-		return new MeanImputationMethod(columnPredicted, datasets);
+		return new MeanImputationMethod(data);
 	}
 }

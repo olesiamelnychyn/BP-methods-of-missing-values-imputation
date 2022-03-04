@@ -1,12 +1,11 @@
 package com.company.imputationMethods;
 
 import com.company.utils.DatasetManipulation;
-import jsat.SimpleDataSet;
+import com.company.utils.objects.MainData;
 import jsat.classifiers.DataPoint;
 import org.apache.commons.math3.analysis.interpolation.LinearInterpolator;
 import org.apache.commons.math3.analysis.polynomials.PolynomialSplineFunction;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.company.utils.ColorFormatPrint.ANSI_PURPLE_BACKGROUND;
@@ -17,10 +16,10 @@ public class LinearInterpolatorApacheMethod extends ImputationMethod {
 	private boolean increasing;
 	private PolynomialSplineFunction polynomialSplineFunction;
 
-	public LinearInterpolatorApacheMethod (int columnPredicted, ArrayList<SimpleDataSet> datasets, int columnPredictor, boolean increasing) {
-		super(columnPredicted, datasets);
+	public LinearInterpolatorApacheMethod (MainData data, boolean increasing) {
+		super(data);
 		this.increasing = increasing;
-		this.columnPredictor = columnPredictor;
+		this.columnPredictor = data.getColumnPredictors()[0];
 	}
 
 	public void preprocessData () {

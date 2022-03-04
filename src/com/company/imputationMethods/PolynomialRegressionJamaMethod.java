@@ -1,10 +1,8 @@
 package com.company.imputationMethods;
 
 import com.company.imputationMethods.regressions.PolynomialRegression;
-import jsat.SimpleDataSet;
+import com.company.utils.objects.MainData;
 import jsat.classifiers.DataPoint;
-
-import java.util.ArrayList;
 
 import static com.company.utils.ColorFormatPrint.ANSI_PURPLE_BACKGROUND;
 import static com.company.utils.ColorFormatPrint.ANSI_RESET;
@@ -13,9 +11,9 @@ public class PolynomialRegressionJamaMethod extends ImputationMethod {
 	private int columnPredictor;
 	private PolynomialRegression polynomialRegression;
 
-	public PolynomialRegressionJamaMethod (int columnPredicted, ArrayList<SimpleDataSet> datasets, int columnPredictor) {
-		super(columnPredicted, datasets);
-		this.columnPredictor = columnPredictor;
+	public PolynomialRegressionJamaMethod (MainData data) {
+		super(data);
+		this.columnPredictor = data.getColumnPredictors()[0];
 	}
 
 	public void preprocessData () {

@@ -1,9 +1,7 @@
 package com.company.imputationMethods;
 
-import jsat.SimpleDataSet;
+import com.company.utils.objects.MainData;
 import jsat.classifiers.DataPoint;
-
-import java.util.ArrayList;
 
 import static com.company.utils.ColorFormatPrint.ANSI_PURPLE_BACKGROUND;
 import static com.company.utils.ColorFormatPrint.ANSI_RESET;
@@ -11,8 +9,8 @@ import static com.company.utils.ColorFormatPrint.ANSI_RESET;
 public class MeanImputationMethod extends ImputationMethod {
 	private double mean;
 
-	public MeanImputationMethod (int columnPredicted, ArrayList<SimpleDataSet> datasets) {
-		super(columnPredicted, datasets);
+	public MeanImputationMethod (MainData data) {
+		super(data);
 	}
 
 	public void preprocessData () {

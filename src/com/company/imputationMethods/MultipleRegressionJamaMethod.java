@@ -2,10 +2,10 @@ package com.company.imputationMethods;
 
 import com.company.imputationMethods.regressions.MultipleLinearRegressionJama;
 import com.company.utils.DatasetManipulation;
+import com.company.utils.objects.MainData;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.company.utils.ColorFormatPrint.ANSI_PURPLE_BACKGROUND;
@@ -19,16 +19,16 @@ public class MultipleRegressionJamaMethod extends ImputationMethod {
 	private double[][] regressionTestDataSet;
 	private MultipleLinearRegressionJama multipleLinearRegression;
 
-	public MultipleRegressionJamaMethod (int columnPredicted, ArrayList<SimpleDataSet> datasets, int[] columnPredictors) {
-		super(columnPredicted, datasets);
-		this.columnPredictors = columnPredictors;
+	public MultipleRegressionJamaMethod (MainData data) {
+		super(data);
+		this.columnPredictors = data.getColumnPredictors();
 		this.polynomial = false;
 		this.degree = 0;
 	}
 
-	public MultipleRegressionJamaMethod (int columnPredicted, ArrayList<SimpleDataSet> datasets, int[] columnPredictors, int degree) {
-		super(columnPredicted, datasets);
-		this.columnPredictors = columnPredictors;
+	public MultipleRegressionJamaMethod (MainData data, int degree) {
+		super(data);
+		this.columnPredictors = data.getColumnPredictors();
 		this.polynomial = true;
 		this.degree = degree;
 

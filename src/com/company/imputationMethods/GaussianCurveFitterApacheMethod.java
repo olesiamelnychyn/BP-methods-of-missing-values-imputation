@@ -1,11 +1,9 @@
 package com.company.imputationMethods;
 
-import jsat.SimpleDataSet;
+import com.company.utils.objects.MainData;
 import jsat.classifiers.DataPoint;
 import org.apache.commons.math3.fitting.GaussianCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoints;
-
-import java.util.ArrayList;
 
 import static com.company.utils.ColorFormatPrint.ANSI_PURPLE_BACKGROUND;
 import static com.company.utils.ColorFormatPrint.ANSI_RESET;
@@ -16,9 +14,9 @@ public class GaussianCurveFitterApacheMethod extends ImputationMethod {
 	private WeightedObservedPoints obs;
 	private double[] coefficients;
 
-	public GaussianCurveFitterApacheMethod (int columnPredicted, ArrayList<SimpleDataSet> datasets, int columnPredictor) {
-		super(columnPredicted, datasets);
-		this.columnPredictor = columnPredictor;
+	public GaussianCurveFitterApacheMethod (MainData data) {
+		super(data);
+		this.columnPredictor = data.getColumnPredictors()[0];
 	}
 
 	public void preprocessData () {

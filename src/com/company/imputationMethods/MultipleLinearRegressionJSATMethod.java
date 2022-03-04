@@ -1,12 +1,12 @@
 package com.company.imputationMethods;
 
 import com.company.utils.DatasetManipulation;
+import com.company.utils.objects.MainData;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.regression.MultipleLinearRegression;
 import jsat.regression.RegressionDataSet;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
 import static com.company.utils.ColorFormatPrint.ANSI_PURPLE_BACKGROUND;
@@ -19,14 +19,14 @@ public class MultipleLinearRegressionJSATMethod extends ImputationMethod {
 	private RegressionDataSet regressionTestDataSet;
 	private MultipleLinearRegression multipleLinearRegression;
 
-	public MultipleLinearRegressionJSATMethod (int columnPredicted, ArrayList<SimpleDataSet> datasets, int[] columnPredictors) {
-		super(columnPredicted, datasets);
-		this.columnPredictors = columnPredictors;
+	public MultipleLinearRegressionJSATMethod (MainData data) {
+		super(data);
+		this.columnPredictors = data.getColumnPredictors();
 	}
 
-	public MultipleLinearRegressionJSATMethod (int columnPredicted, ArrayList<SimpleDataSet> datasets, int[] columnPredictors, int degree) {
-		super(columnPredicted, datasets);
-		this.columnPredictors = columnPredictors;
+	public MultipleLinearRegressionJSATMethod (MainData data, int degree) {
+		super(data);
+		this.columnPredictors = data.getColumnPredictors();
 		this.degree = degree;
 	}
 

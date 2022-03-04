@@ -1,5 +1,6 @@
 package com.company.imputationMethods;
 
+import com.company.utils.objects.MainData;
 import com.sun.tools.javac.util.List;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
@@ -10,11 +11,13 @@ public abstract class ImputationMethod {
 	protected SimpleDataSet trainingCopy;
 	protected SimpleDataSet toBePredicted;
 	protected int columnPredicted;
+	protected MainData data;
 
-	protected ImputationMethod (int columnPredicted, ArrayList<SimpleDataSet> datasets) {
-		this.columnPredicted = columnPredicted;
-		trainingCopy = datasets.get(0);
-		toBePredicted = datasets.get(1);
+	protected ImputationMethod (MainData data) {
+		this.data = data;
+		this.columnPredicted = data.getColumnPredicted();
+		trainingCopy = data.getTrain();
+		toBePredicted = data.getImpute();
 	}
 
 	public abstract void preprocessData ();
@@ -29,12 +32,12 @@ public abstract class ImputationMethod {
 		return toBePredicted;
 	}
 
-	public SimpleDataSet getTrainingCopy () {
-		return trainingCopy;
-	}
-
 	public int getColumnPredicted () {
 		return columnPredicted;
+	}
+
+	public MainData getData () {
+		return data;
 	}
 
 	public ArrayList<SimpleDataSet> getDatasets () {

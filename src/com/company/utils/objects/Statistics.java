@@ -59,19 +59,18 @@ public class Statistics {
 	}
 
 	private void calcBasic (Vec column) {
-		List<Double> latencies = DoubleStream.of(column.arrayCopy()).boxed().collect(Collectors.toCollection(ArrayList::new));
-		Collections.sort(latencies);
+		List<Double> latencies = DoubleStream.of(column.arrayCopy()).boxed().sorted().collect(Collectors.toCollection(ArrayList::new));
 
 		percentiles = new double[]{
-				getPercentile(latencies, 0),
-				getPercentile(latencies, 15),
-				getPercentile(latencies, 25),
-				getPercentile(latencies, 35),
-				getPercentile(latencies, 50),
-				getPercentile(latencies, 65),
-				getPercentile(latencies, 75),
-				getPercentile(latencies, 85),
-				getPercentile(latencies, 100)
+			getPercentile(latencies, 0),
+			getPercentile(latencies, 15),
+			getPercentile(latencies, 25),
+			getPercentile(latencies, 35),
+			getPercentile(latencies, 50),
+			getPercentile(latencies, 65),
+			getPercentile(latencies, 75),
+			getPercentile(latencies, 85),
+			getPercentile(latencies, 100)
 		};
 		//TODO: check how is it counted (question of performance)
 		mean = column.mean();
@@ -84,38 +83,32 @@ public class Statistics {
 	/**
 	 * Remove entries which contain NaN
 	 *
-	 * @param column
 	 * @return vector clean from NaNs
 	 */
 	private DenseVector removeNans (Vec column) {
 		return new DenseVector(
-				Arrays.stream(column.arrayCopy())
-						.filter(x -> !Double.isNaN(x))
-						.toArray()
+			Arrays.stream(column.arrayCopy())
+				.filter(x -> !Double.isNaN(x))
+				.toArray()
 		);
 	}
 
 	/**
 	 * Remove entries below percentile1 and above percentile2
 	 *
-	 * @param column
-	 * @param percentile1
-	 * @param percentile2
-	 * @return vector with values between percentile1 and percentile2
+	 * @return vector with values from column between percentile1 and percentile2
 	 */
 	private DenseVector removeOutliers (Vec column, double percentile1, double percentile2) {
 		return new DenseVector(
-				Arrays.stream(column.arrayCopy())
-						.filter(x -> x > percentile1 && x < percentile2)
-						.toArray()
+			Arrays.stream(column.arrayCopy())
+				.filter(x -> x > percentile1 && x < percentile2)
+				.toArray()
 		);
 	}
 
 	/**
 	 * Remove entries at the same index from both vectors if at least one contains NaN
 	 *
-	 * @param column1
-	 * @param column2
 	 * @return two clean from NaNs vectors
 	 */
 	private DenseVector[] removePairNans (Vec column1, Vec column2) {
@@ -132,15 +125,14 @@ public class Statistics {
 		}
 
 		return new DenseVector[]{
-				new DenseVector(Arrays.copyOfRange(col1, 0, n)),
-				new DenseVector(Arrays.copyOfRange(col2, 0, n))
+			new DenseVector(Arrays.copyOfRange(col1, 0, n)),
+			new DenseVector(Arrays.copyOfRange(col2, 0, n))
 		};
 	}
 
 	/**
 	 * Calculate the min and max step difference ignoring gaps
 	 *
-	 * @param column
 	 */
 	private void calcDiffs (Vec column) {
 		int n = column.length();
@@ -195,10 +187,10 @@ public class Statistics {
 		double polynomialOrder = 0.3265;
 
 		thresholds = new double[]{
-				closeMean, // for isCloseToMean()
-				closeMedian, // for isCloseToMedian()
-				linearRel, // for hasLinearRelationship()
-				polynomialOrder, // for getPolynomialOrder()
+			closeMean, // for isCloseToMean()
+			closeMedian, // for isCloseToMedian()
+			linearRel, // for hasLinearRelationship()
+			polynomialOrder, // for getPolynomialOrder()
 		};
 	}
 
@@ -209,29 +201,29 @@ public class Statistics {
 
 	public String toString () {
 		return "Statistics of predicted value:" +
-				"\n\tMean: " + mean +
-				"\n\tMin (0th percentile): " + percentiles[0] +
-				"\n\t15th percentile: " + percentiles[1] +
-				"\n\t25th percentile: " + percentiles[2] +
-				"\n\t35th percentile: " + percentiles[3] +
-				"\n\tMedian (50th percentile): " + percentiles[4] +
-				"\n\t65th percentile: " + percentiles[5] +
-				"\n\t75th percentile: " + percentiles[6] +
-				"\n\t85th percentile: " + percentiles[7] +
-				"\n\tMax (100th percentile): " + percentiles[8] +
-				"\n\tVariance: " + variance +
-				"\n\tStandard deviation: " + standardDeviation +
-				"\n\tKurtosis: " + kurtosis +
-				"\n\tSkewness: " + skewness +
-				"\n\tPearson Correlation Coefficient with predictor: " + correlation +
-				"\n\tMin difference from previous: " + minDiff +
-				"\n\tMax difference from previous: " + maxDiff +
-				"\nThresholds:" +
-				"\n\tFor isCloseToMean(): " + thresholds[0] +
-				"\n\tFor isCloseToMedian(): " + thresholds[1] +
-				"\n\tFor hasLinearRelationship(): " + thresholds[2] +
-				"\n\tFor getPolynomialOrder(): " + thresholds[3] +
-				"\n";
+			"\n\tMean: " + mean +
+			"\n\tMin (0th percentile): " + percentiles[0] +
+			"\n\t15th percentile: " + percentiles[1] +
+			"\n\t25th percentile: " + percentiles[2] +
+			"\n\t35th percentile: " + percentiles[3] +
+			"\n\tMedian (50th percentile): " + percentiles[4] +
+			"\n\t65th percentile: " + percentiles[5] +
+			"\n\t75th percentile: " + percentiles[6] +
+			"\n\t85th percentile: " + percentiles[7] +
+			"\n\tMax (100th percentile): " + percentiles[8] +
+			"\n\tVariance: " + variance +
+			"\n\tStandard deviation: " + standardDeviation +
+			"\n\tKurtosis: " + kurtosis +
+			"\n\tSkewness: " + skewness +
+			"\n\tPearson Correlation Coefficient with predictor: " + correlation +
+			"\n\tMin difference from previous: " + minDiff +
+			"\n\tMax difference from previous: " + maxDiff +
+			"\nThresholds:" +
+			"\n\tFor isCloseToMean(): " + thresholds[0] +
+			"\n\tFor isCloseToMedian(): " + thresholds[1] +
+			"\n\tFor hasLinearRelationship(): " + thresholds[2] +
+			"\n\tFor getPolynomialOrder(): " + thresholds[3] +
+			"\n";
 	}
 
 	public double getMean () {

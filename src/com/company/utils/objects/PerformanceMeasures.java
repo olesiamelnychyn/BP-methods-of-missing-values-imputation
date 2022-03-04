@@ -32,14 +32,14 @@ public class PerformanceMeasures {
 
 	private void calcMeasures () {
 		measures = new double[]{
-				MSError(actual, predicted),
-				RMSError(actual, predicted),
-				meanAbsoluteError(actual, predicted),
-				relativeSquaredError(actual, predicted, meanTraining),
-				rootRelativeSquaredError(actual, predicted, meanTraining),
-				relativeAbsoluteError(actual, predicted, meanTraining),
-				DescriptiveStatistics.sampleCorCoeff(actual, predicted),
-				meanAbsolutePercentageError(actual, predicted)
+			MSError(actual, predicted),
+			RMSError(actual, predicted),
+			meanAbsoluteError(actual, predicted),
+			relativeSquaredError(actual, predicted, meanTraining),
+			rootRelativeSquaredError(actual, predicted, meanTraining),
+			relativeAbsoluteError(actual, predicted, meanTraining),
+			DescriptiveStatistics.sampleCorCoeff(actual, predicted),
+			meanAbsolutePercentageError(actual, predicted)
 		};
 	}
 
@@ -51,13 +51,13 @@ public class PerformanceMeasures {
 
 	public String toString () {
 		return "\n\n\tMean-Squared Error: " + df2.format(measures[0]) +
-				"\n\tRoot Mean-Squared Error: " + df2.format(measures[1]) +
-				"\n\tMean-Absolute Error: " + df2.format(measures[2]) +
-				"\n\tRelative-Squared Error: " + df2.format(measures[3]) +
-				"\n\tRoot Relative-Squared Error: " + df2.format(measures[4]) + "%" +
-				"\n\tRelative-Absolute Error: " + df2.format(measures[5]) + "%" +
-				"\n\tPearson Correlation Coefficient: " + df2.format(measures[6]) +
-				"\n\tMean Absolute Percentage Error: " + df2.format(measures[7]) + "%\n\n";
+			"\n\tRoot Mean-Squared Error: " + df2.format(measures[1]) +
+			"\n\tMean-Absolute Error: " + df2.format(measures[2]) +
+			"\n\tRelative-Squared Error: " + df2.format(measures[3]) +
+			"\n\tRoot Relative-Squared Error: " + df2.format(measures[4]) + "%" +
+			"\n\tRelative-Absolute Error: " + df2.format(measures[5]) + "%" +
+			"\n\tPearson Correlation Coefficient: " + df2.format(measures[6]) +
+			"\n\tMean Absolute Percentage Error: " + df2.format(measures[7]) + "%\n\n";
 	}
 
 	/**
@@ -77,7 +77,8 @@ public class PerformanceMeasures {
 	 */
 	public void writeOutputPerformanceMeasures (String str, int columnPredicted) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt", true));
-		writer.append("\nPerformance (Predictions for column: " + columnPredicted + "):").append(str);
+		String output = "\nPerformance (Predictions for column: " + columnPredicted + "):";
+		writer.append(output).append(str);
 		writer.close();
 	}
 

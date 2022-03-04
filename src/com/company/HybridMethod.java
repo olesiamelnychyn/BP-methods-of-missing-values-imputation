@@ -1,20 +1,24 @@
 package com.company;
 
-import com.company.imputationMethods.*;
+import com.company.imputationMethods.ImputationMethod;
+import com.company.imputationMethods.MeanImputationMethod;
+import com.company.imputationMethods.MultipleImputationMethods;
+import com.company.imputationMethods.SimpleImputationMethods;
 import com.company.utils.Evaluation;
 import com.company.utils.calculations.StatCalculations;
+import com.company.utils.objects.MainData;
 import com.company.utils.objects.Statistics;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import static com.company.utils.ColorFormatPrint.ANSI_RED_BACKGROUND;
 import static com.company.utils.ColorFormatPrint.ANSI_RESET;
-import static com.company.utils.calculations.MathCalculations.*;
+import static com.company.utils.calculations.MathCalculations.getIndexesOfNull;
+import static com.company.utils.calculations.MathCalculations.getIntersection;
 import static com.company.utils.objects.PerformanceMeasures.df2;
 
 /**
@@ -52,7 +56,7 @@ public class HybridMethod {
 		statistics = StatCalculations.calcStatistics(columnPredicted, columnPredictors, datasetMissing);
 
 		simpleImputationMethods = new SimpleImputationMethods(datasetMissing);
-		multipleImputationMethods = new MultipleImputationMethods(datasetMissing, columnPredictors, Boolean.parseBoolean(configManager.get("impute.weighted")));
+		multipleImputationMethods = new MultipleImputationMethods(datasetMissing, Boolean.parseBoolean(configManager.get("impute.weighted")));
 
 		int skipped = 0;
 		for (DataPoint dp : datasetMissing.getDataPoints()) { //traverse dataset one by one
@@ -86,11 +90,17 @@ public class HybridMethod {
 	}
 
 	public void impute (DataPoint dp, int columnPredicted) {
+		MainData data = new MainData(columnPredictors.clone(), columnPredicted, dp);
+		ImputationMethod method = null;
 		if (columnPredictors.length > 1) { //if it is multiple regression
-			predict(multipleImputationMethods.imputeMultiple(dp, statistics.get(columnPredicted), columnPredicted));
-		} else { //if it is simple regression (only one predictor)
-			predict(simpleImputationMethods.imputeSimple(columnPredictors[0], dp, columnPredicted, statistics.get(columnPredicted), null));
+			method = multipleImputationMethods.imputeMultiple(data, statistics.get(columnPredicted));
 		}
+
+		if (method == null) { //if it is simple regression (only one predictor)
+			method = simpleImputationMethods.imputeSimple(data, statistics.get(columnPredicted));
+		}
+
+		predict(method);
 	}
 
 	protected void predict (ImputationMethod imputationMethod) {
@@ -106,11 +116,10 @@ public class HybridMethod {
 			int indexMissing = datasetMissing.getDataPoints().indexOf(dp);
 			double newValue = imputationMethod.predict(dp);
 
-			if (Double.isNaN(newValue) && !(imputationMethod instanceof MeanImputationMethod)) { // returned value is NaN, try default method - mean imputation
-				ArrayList<SimpleDataSet> dataSets = new ArrayList<>();
-				dataSets.add(imputationMethod.getTrainingCopy());
-				dataSets.add(dataPoints);
-				predict(new MeanImputationMethod(columnPredicted, dataSets));
+			if (!(imputationMethod instanceof MeanImputationMethod) &&
+				(Double.isNaN(newValue) ||
+					StatCalculations.isWithinMaxAndMin(newValue, statistics.get(columnPredicted)))) { // returned value is NaN, try default method - mean imputation
+				predict(new MeanImputationMethod(imputationMethod.getData()));
 				continue;
 			}
 

@@ -1,11 +1,9 @@
 package com.company.imputationMethods;
 
-import jsat.SimpleDataSet;
+import com.company.utils.objects.MainData;
 import jsat.classifiers.DataPoint;
 import org.apache.commons.math3.fitting.PolynomialCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoints;
-
-import java.util.ArrayList;
 
 import static com.company.utils.ColorFormatPrint.ANSI_PURPLE_BACKGROUND;
 import static com.company.utils.ColorFormatPrint.ANSI_RESET;
@@ -17,9 +15,9 @@ public class PolynomialCurveFitterApacheMethod extends ImputationMethod {
 	private WeightedObservedPoints obs;
 	private double[] coefficients;
 
-	public PolynomialCurveFitterApacheMethod (int columnPredicted, ArrayList<SimpleDataSet> datasets, int columnPredictor, int order) {
-		super(columnPredicted, datasets);
-		this.columnPredictor = columnPredictor;
+	public PolynomialCurveFitterApacheMethod (MainData data, int order) {
+		super(data);
+		this.columnPredictor = data.getColumnPredictors()[0];
 		this.order = order;
 	}
 

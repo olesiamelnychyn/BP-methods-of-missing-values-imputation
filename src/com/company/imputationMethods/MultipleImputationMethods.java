@@ -1,33 +1,31 @@
 package com.company.imputationMethods;
 
 import com.company.utils.DatasetManipulation;
+import com.company.utils.objects.MainData;
 import com.company.utils.objects.Statistics;
 import jsat.SimpleDataSet;
-import jsat.classifiers.DataPoint;
-
-import java.util.ArrayList;
 
 import static com.company.utils.calculations.StatCalculations.hasLinearRelationship;
 
 public class MultipleImputationMethods {
-	private int[] columnPredictors;
 	private SimpleDataSet datasetMissing;
 	private boolean weighted;
-	private ArrayList<SimpleDataSet> datasets;
 
-	public MultipleImputationMethods (SimpleDataSet datasetMissing, int[] columnPredictors, boolean weighted) {
-		this.columnPredictors = columnPredictors;
+	public MultipleImputationMethods (SimpleDataSet datasetMissing, boolean weighted) {
 		this.datasetMissing = datasetMissing;
 		this.weighted = weighted;
 	}
 
-	public ImputationMethod imputeMultiple (DataPoint dp, Statistics stat, int columnPredicted) {
-		datasets = DatasetManipulation.getToBeImputedAndTrainDeepCopiesByClosestDistance(datasetMissing, datasetMissing.getDataPoints().indexOf(dp), columnPredicted, columnPredictors, 10, weighted);
+	public ImputationMethod imputeMultiple (MainData data, Statistics stat) {
+		DatasetManipulation.getToBeImputedAndTrainDeepCopiesByClosestDistance(data, datasetMissing, datasetMissing.getDataPoints().indexOf(data.getDp()), 8, weighted);
+		if (data.getColumnPredictors().length == 1) {
+			return null;
+		}
 
-		if (hasLinearRelationship(datasets.get(0), stat)) {
-			return new MultipleLinearRegressionJSATMethod(columnPredicted, datasets, columnPredictors);
+		if (hasLinearRelationship(data.getTrain(), stat)) {
+			return new MultipleLinearRegressionJSATMethod(data);
 		} else {
-			return new MultiDimensionalMultipleImputation(columnPredicted, columnPredictors, datasetMissing, dp, stat, datasets);
+			return new MultiDimensionalMultipleImputation(data, datasetMissing, stat);
 //			return new MultipleLinearRegressionJSATMethod(columnPredicted, datasets, columnPredictors, 2);
 		}
 	}

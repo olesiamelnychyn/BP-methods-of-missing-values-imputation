@@ -9,6 +9,7 @@ import org.apache.commons.math3.linear.LUDecomposition;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,10 +45,7 @@ public class StatCalculations {
 	static public boolean isCloseToMean (SimpleDataSet dataSet, Statistics statistics) {
 		double std = dataSet.getDataMatrix().getColumn(statistics.columnPredicted).standardDeviation();
 		double mean = dataSet.getDataMatrix().getColumn(statistics.columnPredicted).mean();
-		if (std / mean <= statistics.getThresholds()[0]) {
-			return true;
-		}
-		return false;
+		return std / mean <= statistics.getThresholds()[0];
 	}
 
 	static public boolean isCloseToMedian (SimpleDataSet dataSet, Statistics statistics) {
@@ -56,26 +54,18 @@ public class StatCalculations {
 		for (DataPoint dp : dataSet.getDataPoints()) {
 			dist += abs(dp.getNumericalValues().get(statistics.columnPredicted) - median);
 		}
-		if (dist / 8 / median <= statistics.getThresholds()[1]) {
-			return true;
-		}
-		return false;
+		return dist / 8 / median <= statistics.getThresholds()[1];
 	}
 
 	static public boolean hasLinearRelationship (SimpleDataSet dataSet, Statistics statistics) {
 		if (statistics.columnPredictors.length > 1) {
 			//calculate pearson correlation with one predictor
-			if (getCorrMultiple(dataSet, statistics.columnPredicted, statistics.columnPredictors) > statistics.getThresholds()[2]) {
-				return false;
-			}
+			return !(getCorrMultiple(dataSet, statistics.columnPredicted, statistics.columnPredictors) > statistics.getThresholds()[2]);
 		} else {
 			//calculate pearson correlation with multiple predictors
 			double corr = correlation(dataSet.getNumericColumn(statistics.columnPredicted), dataSet.getNumericColumn(statistics.columnPredictors[0]), true);
-			if (abs(corr) < statistics.getThresholds()[2]) {
-				return false;
-			}
+			return !(abs(corr) < statistics.getThresholds()[2]);
 		}
-		return true;
 	}
 
 	static public int getPolynomialOrder (SimpleDataSet dataSet, Statistics statistics) {
@@ -106,7 +96,7 @@ public class StatCalculations {
 	 * @param dataSet dataset with missing values
 	 * @param columnPredicted index of the predicted column
 	 * @param columnPredictor array of indexes of columns used for predicting
-	 * @return
+	 * @return correlation for multiple
 	 */
 	public static double getCorrMultiple (SimpleDataSet dataSet, int columnPredicted, int[] columnPredictor) {
 		int col = columnPredictor.length + 1;
@@ -138,8 +128,8 @@ public class StatCalculations {
 		Map<Integer, Statistics> statistics = new HashMap<>();
 		if (columnPredicted != -1) {
 			Statistics statistic = columnPredictors.length == 1
-					? new Statistics(datasetMissing, columnPredicted, columnPredictors[0])
-					: new Statistics(datasetMissing, columnPredicted, columnPredictors);
+				? new Statistics(datasetMissing, columnPredicted, columnPredictors[0])
+				: new Statistics(datasetMissing, columnPredicted, columnPredictors);
 			statistics.put(columnPredicted, statistic);
 		} else {
 			int n = datasetMissing.getNumericColumns().length;
@@ -150,11 +140,20 @@ public class StatCalculations {
 			int[] predicted = getDifference(arrColumns, columnPredictors);
 			for (int j : predicted) {
 				Statistics statistic = columnPredictors.length == 1
-						? new Statistics(datasetMissing, j, columnPredictors[0])
-						: new Statistics(datasetMissing, j, columnPredictors);
+					? new Statistics(datasetMissing, j, columnPredictors[0])
+					: new Statistics(datasetMissing, j, columnPredictors);
 				statistics.put(j, statistic);
 			}
 		}
 		return statistics;
+	}
+
+	public static boolean allEqual (double[] arr) {
+		return Arrays.stream(arr).distinct().count() == 1;
+	}
+
+	public static boolean isWithinMaxAndMin (double val, Statistics statistics) {
+		return Double.compare(statistics.getPercentiles()[0], val) <= 0 &&
+			Double.compare(statistics.getPercentiles()[8], val) >= 0;
 	}
 }
