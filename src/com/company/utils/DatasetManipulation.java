@@ -29,8 +29,10 @@ public class DatasetManipulation {
 	 */
 	private static String encodeMissingness (String filename) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(filename));
+		String[] split = filename.split("/");
+		filename = filename.replace(filename, "src/com/company/data/ignored/" + split[split.length - 1]);
 		filename = filename.replace(".csv", "_NULL.csv");
-		filename = filename.replace("data", "data/ignored");
+
 		BufferedWriter bw = new BufferedWriter(new FileWriter(filename));
 
 		String out = br.lines()
@@ -41,7 +43,7 @@ public class DatasetManipulation {
 					("na").equalsIgnoreCase(value) ||
 					("nan").equalsIgnoreCase(value) ||
 					value.length() == 0 ||
-					(Boolean.parseBoolean(configManager.get("isZeroMissing")) && "0".equals(value))) ?
+					(Boolean.parseBoolean(configManager.get("impute.isZeroMissing")) && "0".equals(value))) ?
 					"" :
 					value
 			).collect(Collectors.joining(",")))
@@ -74,7 +76,9 @@ public class DatasetManipulation {
 				nans++;
 			}
 		}
-		System.out.println("Number of missing values: " + nans);
+		if (containMissing) {
+			System.out.println("Number of missing values: " + nans);
+		}
 		return simpleDataSet;
 	}
 
