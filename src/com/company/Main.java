@@ -1,6 +1,7 @@
 package com.company;
 
 import com.company.utils.DatasetManipulation;
+import com.sun.media.sound.InvalidDataException;
 import jsat.SimpleDataSet;
 import jsat.io.CSV;
 
@@ -98,7 +99,7 @@ public class Main {
 			input.columnPredictors[j++] = Integer.parseInt(predictor);
 		}
 		if (j == 0) {
-			throw new InvalidObjectException("There is no predictors!");
+			throw new InvalidDataException("There is no predictors!");
 		}
 		input.columnPredictors = Arrays.copyOfRange(input.columnPredictors, 0, j);
 

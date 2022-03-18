@@ -16,10 +16,12 @@ public class SimpleImputationMethods {
 
 	public ImputationMethod imputeSimple (MainData data, Statistics stat) {
 		if (data.getTrain() == null) {
+			// prepare datasets
 			DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(data, datasetMissing, datasetMissing.getDataPoints().indexOf(data.getDp()), 8);
 		}
 		int columnPredictor = data.getColumnPredictors()[0];
 
+		// select appropriate imputation method
 		if (isCloseToMean(data.getTrain(), stat)) {
 			return new MeanImputationMethod(data);
 		} else if (isCloseToMedian(data.getTrain(), stat)) {

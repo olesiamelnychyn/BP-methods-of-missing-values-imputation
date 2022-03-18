@@ -17,11 +17,15 @@ public class MultipleImputationMethods {
 	}
 
 	public ImputationMethod imputeMultiple (MainData data, Statistics stat) {
+		// prepare datasets
 		DatasetManipulation.getToBeImputedAndTrainDeepCopiesByClosestDistance(data, datasetMissing, datasetMissing.getDataPoints().indexOf(data.getDp()), 8, weighted);
 		if (data.getColumnPredictors().length == 1) {
+			// After composing train dataset some predictor columns contain same values, such columns' indexes are excluded from predictors.
+			// In case only one predictor left return null, so the program can continue with single imputation method.
 			return null;
 		}
 
+		// select appropriate imputation method
 		if (hasLinearRelationship(data.getTrain(), stat)) {
 			return new MultipleLinearRegressionJSATMethod(data);
 		} else {

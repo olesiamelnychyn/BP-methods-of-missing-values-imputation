@@ -1,50 +1,45 @@
 package com.company.utils.objects;
 
+import com.company.utils.DatasetManipulation;
 import jsat.SimpleDataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
 import jsat.math.DescriptiveStatistics;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 
 import static com.company.utils.calculations.StatCalculations.getCorrMultiple;
 import static java.lang.Math.abs;
 
+/**
+ * Class that holds a statistics of the predicted column
+ */
 public class Statistics {
 	public int columnPredicted;
 	public int[] columnPredictors;
-
 	private double[] percentiles;
 	private double mean;
 	private double variance;
 	private double standardDeviation;
 	private double kurtosis;
 	private double skewness;
-	private double correlation;
+	private Map<Integer, Double> correlationSimple = new HashMap<>();
+	private double correlationMultiple = Double.NaN;
 	private double maxDiff;
 	private double minDiff;
 	private double[] thresholds;
 
+	// statistics for simple imputation
 	public Statistics (SimpleDataSet dataSet, int columnPredicted, int columnPredictor) {
 		this.columnPredicted = columnPredicted;
 		this.columnPredictors = new int[]{columnPredictor};
-		Vec columnPredict = dataSet.getDataMatrix().getColumn(columnPredicted);
-		Vec columnTrain = dataSet.getDataMatrix().getColumn(columnPredictor);
-
-		calcBasic(removeNans(columnPredict));
-		calcDiffs(removeOutliers(columnPredict, percentiles[1], percentiles[7]));
-
-		Vec[] cols = removePairNans(columnPredict, columnTrain);
-		correlation = DescriptiveStatistics.sampleCorCoeff(cols[0], cols[1]);
-
+		calculateCorrelationSimple(dataSet, columnPredictor);
 		calcThresholds(false);
 	}
 
+	// statistics for multiple imputation
 	public Statistics (SimpleDataSet dataSet, int columnPredicted, int[] columnPredictors) {
 		this.columnPredicted = columnPredicted;
 		this.columnPredictors = columnPredictors;
@@ -53,7 +48,10 @@ public class Statistics {
 		calcBasic(removeNans(columnPredict));
 		calcDiffs(removeOutliers(columnPredict, percentiles[1], percentiles[7]));
 		// TODO: might need NaNs removal
-		correlation = getCorrMultiple(dataSet, columnPredicted, columnPredictors);
+		correlationMultiple = getCorrMultiple(dataSet, columnPredicted, columnPredictors);
+		for (int predictor : columnPredictors) {
+			calculateCorrelationSimple(dataSet, predictor);
+		}
 
 		calcThresholds(true);
 	}
@@ -72,12 +70,27 @@ public class Statistics {
 			getPercentile(latencies, 85),
 			getPercentile(latencies, 100)
 		};
-		//TODO: check how is it counted (question of performance)
 		mean = column.mean();
 		variance = column.variance();
 		standardDeviation = column.standardDeviation();
 		kurtosis = column.kurtosis();
 		skewness = column.skewness();
+	}
+
+	/** Calculate correlation between predicted column and the column passed
+	 *
+	 * @param dataSet
+	 * @param columnIndex
+	 */
+	private void calculateCorrelationSimple (SimpleDataSet dataSet, int columnIndex) {
+		Vec columnPredict = dataSet.getDataMatrix().getColumn(columnPredicted);
+		Vec columnTrain = dataSet.getDataMatrix().getColumn(columnIndex);
+
+		calcBasic(removeNans(columnPredict));
+		calcDiffs(removeOutliers(columnPredict, percentiles[1], percentiles[7]));
+
+		Vec[] cols = removePairNans(columnPredict, columnTrain);
+		correlationSimple.put(columnIndex, DescriptiveStatistics.sampleCorCoeff(cols[0], cols[1]));
 	}
 
 	/**
@@ -200,6 +213,14 @@ public class Statistics {
 	}
 
 	public String toString () {
+		String correlations = "";
+		if (!Double.isNaN(correlationMultiple)) {
+			correlations += "\n\tCorrelation Multiple: " + correlationMultiple;
+		}
+		for (int pred : columnPredictors) {
+			correlations += "\n\tPearson Correlation Coefficient with predictor (column " + pred + "): " + correlationSimple.getOrDefault(pred, 0.0);
+		}
+
 		return "Statistics of predicted value:" +
 			"\n\tMean: " + mean +
 			"\n\tMin (0th percentile): " + percentiles[0] +
@@ -215,7 +236,7 @@ public class Statistics {
 			"\n\tStandard deviation: " + standardDeviation +
 			"\n\tKurtosis: " + kurtosis +
 			"\n\tSkewness: " + skewness +
-			"\n\tPearson Correlation Coefficient with predictor: " + correlation +
+			correlations +
 			"\n\tMin difference from previous: " + minDiff +
 			"\n\tMax difference from previous: " + maxDiff +
 			"\nThresholds:" +
@@ -246,8 +267,16 @@ public class Statistics {
 		return skewness;
 	}
 
-	public double getCorrelation () {
-		return correlation;
+	public Map<Integer, Double> getCorrelationSimple () {
+		return correlationSimple;
+	}
+
+	public double getCorrelationSimpleByColumn (int column) {
+		return correlationSimple.getOrDefault(column, 0.0);
+	}
+
+	public double getCorrelationMultiple () {
+		return correlationMultiple;
 	}
 
 	public double getMaxDiff () {

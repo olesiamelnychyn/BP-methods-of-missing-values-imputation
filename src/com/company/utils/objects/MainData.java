@@ -3,6 +3,9 @@ package com.company.utils.objects;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 
+/**
+ * Helper object that stores main information needed by the imputation methods
+ */
 public class MainData {
 	private SimpleDataSet train = null;
 	private SimpleDataSet impute;

@@ -122,6 +122,7 @@ public class DatasetManipulation {
 			}
 		}
 
+		// store max and min of each column of selected records with valid predictors to be used for normalizing
 		SimpleDataSet recordsDS = new SimpleDataSet(records);
 		recordsDS.add(mainDP);
 		int k = 0;
@@ -134,11 +135,11 @@ public class DatasetManipulation {
 
 		records.remove(mainDP);
 		// normalize predictors in mainDP
-		double[] valuesMain = normilizePredictors(mainDP, columnPredictors, maxAndMin, recordsDS.getSampleSize());
+		double[] valuesMain = normalizePredictors(mainDP, columnPredictors, maxAndMin, recordsDS.getSampleSize());
 
 		records.forEach((dp) -> {
 			// normalize predictors in dp
-			double[] valuesSec = normilizePredictors(dp, columnPredictors, maxAndMin, recordsDS.getSampleSize());
+			double[] valuesSec = normalizePredictors(dp, columnPredictors, maxAndMin, recordsDS.getSampleSize());
 			double dist = getEuclideanDistance(valuesMain, valuesSec);
 			if (weighted) {
 				dp.setWeight(getWeightByEuclidean(dist));
@@ -175,6 +176,7 @@ public class DatasetManipulation {
 			firstIndex = index + 1;
 		}
 
+		// rank records with not-null predictors by euclidean distance
 		TreeMap<Double, DataPoint> ranked = rankDatasetByEuclideanDistance(datasetMissing, mainDP, data.getColumnPredictors(), firstIndex, index, weighted);
 
 		// split ranked records until training dataset contains nRecords
@@ -198,6 +200,7 @@ public class DatasetManipulation {
 
 		data.setImpute(new SimpleDataSet(dataPointsToBeImputed));
 		data.setTrain(new SimpleDataSet(dataPointsTrain));
+		// remove predictors if values in their columns are the same
 		data.setColumnPredictors(Arrays.stream(data.getColumnPredictors())
 			.filter(pred -> !StatCalculations.allEqual(data.getTrain().getDataMatrix().getColumn(pred).arrayCopy()))
 			.toArray());

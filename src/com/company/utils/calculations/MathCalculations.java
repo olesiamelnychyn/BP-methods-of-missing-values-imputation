@@ -125,7 +125,15 @@ public class MathCalculations {
 		return (x - min) / (max - min);
 	}
 
-	public static double[] normilizePredictors (DataPoint dp, int[] columnPredictors, double[] sumsForNormalisation, int size) {
+	/** Normalize predictors columns to be within the range from 0 to 1
+	 *
+	 * @param dp
+	 * @param columnPredictors
+	 * @param sumsForNormalisation
+	 * @param size
+	 * @return
+	 */
+	public static double[] normalizePredictors (DataPoint dp, int[] columnPredictors, double[] sumsForNormalisation, int size) {
 		double[] values = new double[columnPredictors.length];
 		for (int i = 0; i < columnPredictors.length; i++) {
 			values[i] = normalize(dp.getNumericalValues().get(columnPredictors[i]), sumsForNormalisation[i * 2], sumsForNormalisation[i * 2 + 1], size);

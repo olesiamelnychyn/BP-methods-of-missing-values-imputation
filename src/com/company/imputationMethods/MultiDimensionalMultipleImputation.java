@@ -35,6 +35,7 @@ public class MultiDimensionalMultipleImputation extends ImputationMethod {
 	}
 
 	public void fit () {
+		// select best methods for each predictor separately
 		SimpleImputationMethods simpleImputationMethods = new SimpleImputationMethods(datasetMissing);
 		for (int columnPredictor : columnPredictors) {
 			MainData mainData = new MainData(new int[]{columnPredictor}, columnPredicted, data.getDp(), data.getTrain(), data.getImpute());
@@ -45,6 +46,7 @@ public class MultiDimensionalMultipleImputation extends ImputationMethod {
 	public double predict (DataPoint dp) {
 		Vec newValues = new DenseVector(columnPredictors.length);
 		AtomicInteger i = new AtomicInteger();
+		// get all the values predicted by the methods
 		methods.forEach(method -> {
 			method.preprocessData();
 			method.fit();

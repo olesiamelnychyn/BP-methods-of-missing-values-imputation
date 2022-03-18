@@ -68,6 +68,12 @@ public class StatCalculations {
 		}
 	}
 
+	/**
+	 * Get the most optimal polynomial order.
+	 *
+	 * @param dataSet
+	 * @param statistics
+	 */
 	static public int getPolynomialOrder (SimpleDataSet dataSet, Statistics statistics) {
 		int n = dataSet.getSampleSize();
 		//create raw polynomials of values in columnPredictor
@@ -124,6 +130,13 @@ public class StatCalculations {
 		return a.getEntry(0, 0) / b.getEntry(0, 0);
 	}
 
+	/**
+	 * Calculate the statistics of the predicted column/-s
+	 *
+	 * @param columnPredicted predicted
+	 * @param columnPredictors predictors
+	 * @param datasetMissing incomplete dataset
+	 */
 	public static Map<Integer, Statistics> calcStatistics (int columnPredicted, int[] columnPredictors, SimpleDataSet datasetMissing) {
 		Map<Integer, Statistics> statistics = new HashMap<>();
 		if (columnPredicted != -1) {
@@ -148,10 +161,19 @@ public class StatCalculations {
 		return statistics;
 	}
 
+	/**
+	 * Checks if all values in array are the same
+	 * @param arr
+	 */
 	public static boolean allEqual (double[] arr) {
 		return Arrays.stream(arr).distinct().count() == 1;
 	}
 
+	/**
+	 * Checks whether the value is within the max and min of the column
+	 * @param val
+	 * @param statistics object that contain min and max
+	 */
 	public static boolean isWithinMaxAndMin (double val, Statistics statistics) {
 		return Double.compare(statistics.getPercentiles()[0], val) <= 0 &&
 			Double.compare(statistics.getPercentiles()[8], val) >= 0;

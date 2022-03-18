@@ -30,9 +30,16 @@ public class Evaluation {
 		this.printOnlyFinal = printOnlyFinal;
 	}
 
+	/** Store predicted value in the evaluation object for calculating performance measures in the future
+	 *
+	 * @param columnPredicted
+	 * @param indexMissing
+	 * @param toBePredicted
+	 */
 	public void evaluate_concat (int columnPredicted, int indexMissing, DataPoint toBePredicted) {
 		//if there is no complete dataset, there won't be any evaluation
 		if (datasetComplete != null) {
+			// otherwise put it into list of imputed values of the appropriate column
 			ImputedValue value = new ImputedValue(indexMissing, datasetComplete.getDataPoint(indexMissing).getNumericalValues().get(columnPredicted), toBePredicted.getNumericalValues().get(columnPredicted));
 			if (values.containsKey(columnPredicted)) {
 				values.get(columnPredicted).add(value);
