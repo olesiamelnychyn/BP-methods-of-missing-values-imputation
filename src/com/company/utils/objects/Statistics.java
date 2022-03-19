@@ -9,7 +9,9 @@ import jsat.math.DescriptiveStatistics;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
+import static com.company.utils.DatasetManipulation.removeNanRows;
 import static com.company.utils.calculations.StatCalculations.getCorrMultiple;
 import static java.lang.Math.abs;
 
@@ -47,12 +49,7 @@ public class Statistics {
 
 		calcBasic(removeNans(columnPredict));
 		calcDiffs(removeOutliers(columnPredict, percentiles[1], percentiles[7]));
-		// TODO: might need NaNs removal
-		correlationMultiple = getCorrMultiple(dataSet, columnPredicted, columnPredictors);
-		for (int predictor : columnPredictors) {
-			calculateCorrelationSimple(dataSet, predictor);
-		}
-
+		calcCorr(dataSet);
 		calcThresholds(true);
 	}
 
@@ -79,8 +76,8 @@ public class Statistics {
 
 	/** Calculate correlation between predicted column and the column passed
 	 *
-	 * @param dataSet
-	 * @param columnIndex
+	 * @param dataSet data
+	 * @param columnIndex column to calculate the correlation with
 	 */
 	private void calculateCorrelationSimple (SimpleDataSet dataSet, int columnIndex) {
 		Vec columnPredict = dataSet.getDataMatrix().getColumn(columnPredicted);
@@ -141,6 +138,14 @@ public class Statistics {
 			new DenseVector(Arrays.copyOfRange(col1, 0, n)),
 			new DenseVector(Arrays.copyOfRange(col2, 0, n))
 		};
+	}
+
+	private void calcCorr (SimpleDataSet dataSet) {
+		int[] cols = IntStream.concat(IntStream.of(columnPredictors), IntStream.of(columnPredicted)).toArray();
+		correlationMultiple = getCorrMultiple(removeNanRows(dataSet, cols), columnPredicted, columnPredictors);
+		for (int predictor : columnPredictors) {
+			calculateCorrelationSimple(dataSet, predictor);
+		}
 	}
 
 	/**
@@ -213,12 +218,12 @@ public class Statistics {
 	}
 
 	public String toString () {
-		String correlations = "";
+		StringBuilder correlations = new StringBuilder();
 		if (!Double.isNaN(correlationMultiple)) {
-			correlations += "\n\tCorrelation Multiple: " + correlationMultiple;
+			correlations.append("\n\tCorrelation Multiple: " + correlationMultiple);
 		}
 		for (int pred : columnPredictors) {
-			correlations += "\n\tPearson Correlation Coefficient with predictor (column " + pred + "): " + correlationSimple.getOrDefault(pred, 0.0);
+			correlations.append("\n\tPearson Correlation Coefficient with predictor (column " + pred + "): " + correlationSimple.getOrDefault(pred, 0.0));
 		}
 
 		return "Statistics of predicted value:" +

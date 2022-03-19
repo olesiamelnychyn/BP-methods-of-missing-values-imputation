@@ -22,18 +22,18 @@ public class SimpleImputationMethods {
 		int columnPredictor = data.getColumnPredictors()[0];
 
 		// select appropriate imputation method
-		if (isCloseToMean(data.getTrain(), stat)) {
+		if (isCloseToMean(data, stat)) {
 			return new MeanImputationMethod(data);
-		} else if (isCloseToMedian(data.getTrain(), stat)) {
+		} else if (isCloseToMedian(data, stat)) {
 			return new MedianImputationMethod(data);
-		} else if (isStrictlyIncreasing(data.getTrain(), data.getColumnPredicted()) && isStrictlyIncreasing(data.getTrain(), columnPredictor)) {
+		} else if (isStrictlyIncreasing(data, data.getColumnPredicted()) && isStrictlyIncreasing(data, columnPredictor)) {
 			return new LinearInterpolatorApacheMethod(data, true);
-		} else if (isStrictlyDecreasing(data.getTrain(), data.getColumnPredicted()) && isStrictlyDecreasing(data.getTrain(), columnPredictor)) {
+		} else if (isStrictlyDecreasing(data, data.getColumnPredicted()) && isStrictlyDecreasing(data, columnPredictor)) {
 			return new LinearInterpolatorApacheMethod(data, false);
-		} else if (hasLinearRelationship(data.getTrain(), stat)) {
+		} else if (hasLinearRelationship(data, stat)) {
 			return new LinearRegressionJSATMethod(data);
 		} else {
-			int order = getPolynomialOrder(data.getTrain(), stat);
+			int order = getPolynomialOrderSimple(data, stat);
 			if (order != -1) {
 				return new PolynomialCurveFitterApacheMethod(data, order);
 			}

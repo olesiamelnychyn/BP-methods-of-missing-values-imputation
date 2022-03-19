@@ -1,6 +1,7 @@
 package com.company.utils;
 
 import com.company.ConfigManager;
+import com.company.utils.calculations.MathCalculations;
 import com.company.utils.calculations.StatCalculations;
 import com.company.utils.objects.MainData;
 import jsat.SimpleDataSet;
@@ -358,6 +359,12 @@ public class DatasetManipulation {
 		for (DataPoint dp : dataSet.getDataPoints()) {
 			System.out.println(dp.getNumericalValues().get(column));
 		}
+	}
+
+	static public SimpleDataSet removeNanRows (SimpleDataSet dataSet, int[] cols) {
+		return new SimpleDataSet(dataSet.getDataPoints().stream()
+			.filter(dp -> getIntersection(getIndexesOfNull(dp), cols).length == 0)
+			.collect(Collectors.toList()));
 	}
 
 }
