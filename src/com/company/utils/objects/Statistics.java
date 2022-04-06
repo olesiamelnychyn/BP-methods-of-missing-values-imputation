@@ -1,6 +1,6 @@
 package com.company.utils.objects;
 
-import com.company.utils.DatasetManipulation;
+import com.company.utils.calculations.StatCalculations;
 import jsat.SimpleDataSet;
 import jsat.linear.DenseVector;
 import jsat.linear.Vec;
@@ -13,7 +13,6 @@ import java.util.stream.IntStream;
 
 import static com.company.utils.DatasetManipulation.removeNanRows;
 import static com.company.utils.calculations.StatCalculations.getCorrMultiple;
-import static java.lang.Math.abs;
 
 /**
  * Class that holds a statistics of the predicted column
@@ -29,8 +28,7 @@ public class Statistics {
 	private double skewness;
 	private Map<Integer, Double> correlationSimple = new HashMap<>();
 	private double correlationMultiple = Double.NaN;
-	private double maxDiff;
-	private double minDiff;
+	private double[] diffs; // minDiff and maxDiff
 	private double[] thresholds;
 
 	// statistics for simple imputation
@@ -48,7 +46,8 @@ public class Statistics {
 		Vec columnPredict = dataSet.getDataMatrix().getColumn(columnPredicted);
 
 		calcBasic(removeNans(columnPredict));
-		calcDiffs(removeOutliers(columnPredict, percentiles[1], percentiles[7]));
+		diffs = StatCalculations.calcDiffs(removeOutliers(columnPredict, percentiles[0], percentiles[8]));
+
 		calcCorr(dataSet);
 		calcThresholds(true);
 	}
@@ -84,7 +83,8 @@ public class Statistics {
 		Vec columnTrain = dataSet.getDataMatrix().getColumn(columnIndex);
 
 		calcBasic(removeNans(columnPredict));
-		calcDiffs(removeOutliers(columnPredict, percentiles[1], percentiles[7]));
+
+		diffs = StatCalculations.calcDiffs(removeOutliers(columnPredict, percentiles[0], percentiles[8]));
 
 		Vec[] cols = removePairNans(columnPredict, columnTrain);
 		correlationSimple.put(columnIndex, DescriptiveStatistics.sampleCorCoeff(cols[0], cols[1]));
@@ -145,36 +145,6 @@ public class Statistics {
 		correlationMultiple = getCorrMultiple(removeNanRows(dataSet, cols), columnPredicted, columnPredictors);
 		for (int predictor : columnPredictors) {
 			calculateCorrelationSimple(dataSet, predictor);
-		}
-	}
-
-	/**
-	 * Calculate the min and max step difference ignoring gaps
-	 *
-	 */
-	private void calcDiffs (Vec column) {
-		int n = column.length();
-		minDiff = Double.POSITIVE_INFINITY;
-		maxDiff = Double.NEGATIVE_INFINITY;
-		for (int i = 1; i < n; i++) {
-			double a = column.get(i);
-			if (Double.isNaN(a)) { // skip next entry, since the difference cannot be counted
-				i++;
-				continue;
-			}
-			double b = column.get(i - 1);
-			if (Double.isNaN(b)) {  // if there are two NaNs in a row
-				continue;
-			}
-			double diff = abs(a - b);
-			if (diff < minDiff) {
-				minDiff = diff;
-				continue;
-			}
-			if (diff > maxDiff) {
-				maxDiff = diff;
-			}
-
 		}
 	}
 
@@ -242,8 +212,8 @@ public class Statistics {
 			"\n\tKurtosis: " + kurtosis +
 			"\n\tSkewness: " + skewness +
 			correlations +
-			"\n\tMin difference from previous: " + minDiff +
-			"\n\tMax difference from previous: " + maxDiff +
+			"\n\tMin difference from previous: " + diffs[0] +
+			"\n\tMax difference from previous: " + diffs[1] +
 			"\nThresholds:" +
 			"\n\tFor isCloseToMean(): " + thresholds[0] +
 			"\n\tFor isCloseToMedian(): " + thresholds[1] +
@@ -284,12 +254,12 @@ public class Statistics {
 		return correlationMultiple;
 	}
 
-	public double getMaxDiff () {
-		return maxDiff;
+	public double[] getDiffs () {
+		return diffs;
 	}
 
-	public double getMinDiff () {
-		return minDiff;
+	public double[] getMinAndMax () {
+		return new double[]{percentiles[0], percentiles[8]};
 	}
 
 	public double[] getThresholds () {

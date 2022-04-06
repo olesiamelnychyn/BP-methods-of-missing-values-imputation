@@ -165,6 +165,7 @@ public class DatasetManipulation {
 		List<DataPoint> dataPointsTrain = new ArrayList<>(); //records used for training
 		List<DataPoint> dataPointsToBeImputed = new ArrayList<>();//records in which values should be predicted
 		DataPoint mainDP = datasetMissing.getDataPoints().get(index);
+		DataPoint[] toCountStepWith = new DataPoint[]{null, null};
 		int firstIndex = index - 30; //index of the first record, by default 4 records before current one
 		int nTraining = 0; //number of records used for training
 
@@ -183,6 +184,9 @@ public class DatasetManipulation {
 		// split ranked records until training dataset contains nRecords
 		for (DataPoint dp : ranked.values()) {
 			if (!Double.isNaN(dp.getNumericalValues().get(data.getColumnPredicted()))) {
+				if (toCountStepWith[0] == null) {
+					toCountStepWith[0] = dp;
+				}
 				dataPointsTrain.add(dp);
 				nTraining++;
 				if (nTraining >= nRecords) {
@@ -199,6 +203,7 @@ public class DatasetManipulation {
 			normalizeWeights(dataPointsTrain);
 		}
 
+		data.setToCountStepWith(toCountStepWith);
 		data.setImpute(new SimpleDataSet(dataPointsToBeImputed));
 		data.setTrain(new SimpleDataSet(dataPointsTrain));
 		// remove predictors if values in their columns are the same
@@ -221,6 +226,7 @@ public class DatasetManipulation {
 		List<DataPoint> dataPointsToBeImputed = new ArrayList<>();//records in which values should be predicted
 		int firstIndex = index - nRecords / 2; //index of the first record, by default 4 records before current one
 		int nTraining = 0; //number of records used for training
+		DataPoint[] toCountStepWith = new DataPoint[]{null, null};
 
 		dataPointsToBeImputed.add(dataset.getDataPoints().get(index)); //current record is always the one to be predicted
 		if (firstIndex != -nRecords / 2) { //if current record is not the first in dataset
@@ -232,6 +238,7 @@ public class DatasetManipulation {
 				dataPointsTrain.add(obj.clone());
 				nTraining++;
 			}
+			toCountStepWith[0] = dataset.getDataPoint(index - 1);
 		}
 
 		int n = dataset.getSampleSize(); //the last index in dataset
@@ -244,6 +251,9 @@ public class DatasetManipulation {
 				//if record contains value in column which is going to be predicted
 				//then add it to the dataset used for prediction,
 				if (!Double.isNaN(obj.getNumericalValues().get(data.getColumnPredicted()))) {
+					if (toCountStepWith[1] == null) {
+						toCountStepWith[1] = obj;
+					}
 					dataPointsTrain.add(obj.clone());
 					nTraining++;
 				} else {
@@ -253,6 +263,7 @@ public class DatasetManipulation {
 			}
 		}
 
+		data.setToCountStepWith(toCountStepWith);
 		data.setImpute(new SimpleDataSet(dataPointsToBeImputed));
 		data.setTrain(new SimpleDataSet(dataPointsTrain));
 	}

@@ -5,15 +5,13 @@ import com.company.utils.objects.Statistics;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 import jsat.linear.DenseVector;
+import jsat.linear.Vec;
 import org.apache.commons.math3.linear.BlockRealMatrix;
 import org.apache.commons.math3.linear.MatrixUtils;
 import org.apache.commons.math3.linear.RealMatrix;
 import org.apache.commons.math3.linear.SingularMatrixException;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static com.company.utils.calculations.MathCalculations.*;
 import static java.lang.Math.*;
@@ -210,13 +208,55 @@ public class StatCalculations {
 	}
 
 	/**
+	 * Calculate the min and max step difference ignoring gaps
+	 *
+	 */
+	public static double[] calcDiffs (Vec column) {
+		int n = column.length();
+		double minDiff = Double.POSITIVE_INFINITY;
+		double maxDiff = Double.NEGATIVE_INFINITY;
+		for (int i = 1; i < n; i++) {
+			double a = column.get(i);
+			if (Double.isNaN(a)) { // skip next entry, since the difference cannot be counted
+				i++;
+				continue;
+			}
+			double b = column.get(i - 1);
+			if (Double.isNaN(b)) {  // if there are two NaNs in a row
+				continue;
+			}
+			double diff = abs(a - b);
+			if (diff < minDiff) {
+				minDiff = diff;
+				continue;
+			}
+			if (diff > maxDiff) {
+				maxDiff = diff;
+			}
+
+		}
+		return new double[]{minDiff, maxDiff};
+	}
+
+	/**
 	 * Checks whether the value is within the max and min of the column
 	 * @param val value
-	 * @param statistics object that contain min and max
+	 * @param diffs array that contain min and max
 	 */
-	public static boolean isWithinMaxAndMin (double val, Statistics statistics) {
-		return Double.compare(statistics.getPercentiles()[0], val) <= 0 &&
-			Double.compare(statistics.getPercentiles()[8], val) >= 0;
+	public static boolean isWithinMaxAndMin (double val, double[] diffs) {
+		return Double.compare(diffs[0], val) <= 0 &&
+			Double.compare(diffs[1], val) >= 0;
+	}
+
+	/** Checks whether the step from logically the closest value is within the max and min range of differences the column
+	 *
+	 * @param newValue predicted value
+	 * @param data object that contains previous or next closest record
+	 */
+	public static boolean isStepWithinMaxAndMinStep (double newValue, MainData data) {
+		double[] diffs = calcDiffs(data.getTrain().getNumericColumn(data.getColumnPredicted()));
+		//returns true on empty stream, we cannot say it is not within step borders if there are no closest record/-s
+		return Arrays.stream(data.getStep(newValue)).allMatch(i -> isWithinMaxAndMin(i, diffs));
 	}
 
 	/** Compute correlation matrix

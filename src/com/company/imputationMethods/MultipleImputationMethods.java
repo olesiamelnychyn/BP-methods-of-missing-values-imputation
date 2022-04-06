@@ -10,10 +10,12 @@ import static com.company.utils.calculations.StatCalculations.*;
 public class MultipleImputationMethods {
 	private SimpleDataSet datasetMissing;
 	private boolean weighted;
+	private boolean useMultiDimensionalAsDefault;
 
-	public MultipleImputationMethods (SimpleDataSet datasetMissing, boolean weighted) {
+	public MultipleImputationMethods (SimpleDataSet datasetMissing, boolean weighted, boolean useMultiDimensionalAsDefault) {
 		this.datasetMissing = datasetMissing;
 		this.weighted = weighted;
+		this.useMultiDimensionalAsDefault = useMultiDimensionalAsDefault;
 	}
 
 	public ImputationMethod imputeMultiple (MainData data, Statistics stat) {
@@ -27,12 +29,13 @@ public class MultipleImputationMethods {
 
 		// select appropriate imputation method
 		if (hasLinearRelationship(data, stat)) {
-			return new MultipleLinearRegressionJSATMethod(data);
+			// linear regression is a special way of polynomial regression with 1st degree
+			return new MultiplePolynomialRegressionJSATMethod(data);
 		} else if (hasPolynomialRelation(data, stat)) {
-			return new MultipleLinearRegressionJSATMethod(data, 2);
+			return new MultiplePolynomialRegressionJSATMethod(data, 2);
+		} else if (useMultiDimensionalAsDefault) {
+			return new MultiDimensionalMultipleImputation(data, datasetMissing, stat);
 		}
-
-
-		return new MultiDimensionalMultipleImputation(data, datasetMissing, stat);
+		return new MeanImputationMethod(data);
 	}
 }

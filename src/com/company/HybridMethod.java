@@ -14,11 +14,9 @@ import jsat.classifiers.DataPoint;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.IntStream;
 
-import static com.company.utils.ColorFormatPrint.ANSI_RED_BACKGROUND;
-import static com.company.utils.ColorFormatPrint.ANSI_RESET;
-import static com.company.utils.calculations.MathCalculations.getIndexesOfNull;
-import static com.company.utils.calculations.MathCalculations.getIntersection;
+import static com.company.utils.calculations.MathCalculations.*;
 import static com.company.utils.objects.PerformanceMeasures.df2;
 
 /**
@@ -56,32 +54,20 @@ public class HybridMethod {
 		statistics = StatCalculations.calcStatistics(columnPredicted, columnPredictors, datasetMissing);
 
 		simpleImputationMethods = new SimpleImputationMethods(datasetMissing);
-		multipleImputationMethods = new MultipleImputationMethods(datasetMissing, Boolean.parseBoolean(configManager.get("impute.weighted")));
+		multipleImputationMethods = new MultipleImputationMethods(datasetMissing, Boolean.parseBoolean(configManager.get("impute.weighted")), Boolean.parseBoolean(configManager.get("impute.useMultiDimensionalAsDefault")));
 
-		int skipped = 0;
 		for (DataPoint dp : datasetMissing.getDataPoints()) { //traverse dataset one by one
+			int[] indexes = getIndexesOfNull(dp);
+			boolean missingPredictor = getIntersection(indexes, columnPredictors).length > 0;
+			int[] missingNonPredictors = getDifference(indexes, columnPredictors);
 
-			if (columnPredicted != -1) { //if column to be imputed is specified
-				if (Double.isNaN(dp.getNumericalValues().get(columnPredicted))) {
-					impute(dp, columnPredicted);
-				}
+			if (columnPredicted != -1 && IntStream.of(missingNonPredictors).anyMatch(x -> x == columnPredicted)) { //if column to be imputed is specified
+				impute(dp, columnPredicted, missingPredictor);
 			} else { //all columns should be imputed
-				int[] indexes = getIndexesOfNull(dp);
-				if (getIntersection(indexes, columnPredictors).length != 0) {
-					skipped++;
-					if (!printOnlyFinal) {
-						System.out.println(ANSI_RED_BACKGROUND + "Predictor cannot be predicted -- skip" + ANSI_RESET + "\n\n");
-					}
-				} else if (indexes.length > 0) {
-					for (int idx : indexes) {
-						impute(dp, idx);
-					}
+				for (int idx : missingNonPredictors) {
+					impute(dp, idx, missingPredictor);
 				}
 			}
-		}
-
-		if (skipped != 0) {
-			System.out.println("Number of records skipped due to absence of predictor : " + skipped);
 		}
 
 		if (evaluation != null) {
@@ -89,14 +75,15 @@ public class HybridMethod {
 		}
 	}
 
-	public void impute (DataPoint dp, int columnPredicted) {
-		MainData data = new MainData(columnPredictors.clone(), columnPredicted, dp);
+	public void impute (DataPoint dp, int columnPredicted, boolean missingPredictor) {
+		MainData data = new MainData(!missingPredictor ? columnPredictors.clone() : new int[]{}, columnPredicted, dp);
 		ImputationMethod method = null;
-		if (columnPredictors.length > 1) { //if it is multiple regression
+
+		if (data.getColumnPredictors().length > 1) { //if it is multiple regression
 			method = multipleImputationMethods.imputeMultiple(data, statistics.get(columnPredicted));
 		}
 
-		if (method == null) { //if it is simple regression (only one predictor)
+		if (method == null) { //if it is simple regression (none or only one predictor)
 			method = simpleImputationMethods.imputeSimple(data, statistics.get(columnPredicted));
 		}
 
@@ -116,9 +103,10 @@ public class HybridMethod {
 			int indexMissing = datasetMissing.getDataPoints().indexOf(dp);
 			double newValue = imputationMethod.predict(dp);
 
-			if (!(imputationMethod instanceof MeanImputationMethod) &&
-				(Double.isNaN(newValue) ||
-					StatCalculations.isWithinMaxAndMin(newValue, statistics.get(columnPredicted)))) { // returned value is NaN, try default method - mean imputation
+			if (!(imputationMethod instanceof MeanImputationMethod) && (
+				Double.isNaN(newValue)
+					|| StatCalculations.isWithinMaxAndMin(newValue, statistics.get(columnPredicted).getMinAndMax())
+					|| StatCalculations.isStepWithinMaxAndMinStep(newValue, imputationMethod.getData()))) {
 				predict(new MeanImputationMethod(imputationMethod.getData()));
 				continue;
 			}

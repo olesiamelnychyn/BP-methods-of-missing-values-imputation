@@ -12,19 +12,19 @@ import java.util.Arrays;
 import static com.company.utils.ColorFormatPrint.ANSI_PURPLE_BACKGROUND;
 import static com.company.utils.ColorFormatPrint.ANSI_RESET;
 
-public class MultipleLinearRegressionJSATMethod extends ImputationMethod {
+public class MultiplePolynomialRegressionJSATMethod extends ImputationMethod {
 	private int[] columnPredictors;
 	private int degree = 1;
 	private RegressionDataSet regressionDataSet;
 	private RegressionDataSet regressionTestDataSet;
 	private MultipleLinearRegression multipleLinearRegression;
 
-	public MultipleLinearRegressionJSATMethod (MainData data) {
+	public MultiplePolynomialRegressionJSATMethod (MainData data) {
 		super(data);
 		this.columnPredictors = data.getColumnPredictors();
 	}
 
-	public MultipleLinearRegressionJSATMethod (MainData data, int degree) {
+	public MultiplePolynomialRegressionJSATMethod (MainData data, int degree) {
 		super(data);
 		this.columnPredictors = data.getColumnPredictors();
 		this.degree = degree;
