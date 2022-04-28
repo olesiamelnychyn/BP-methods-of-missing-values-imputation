@@ -12,10 +12,10 @@ import java.util.stream.Collectors;
 import static com.company.utils.ColorFormatPrint.ANSI_PURPLE_BACKGROUND;
 import static com.company.utils.ColorFormatPrint.ANSI_RESET;
 
-public class UseClosest extends ImputationMethod {
+public class ClosestImputation extends ImputationMethod {
 	private double closestValue;
 
-	public UseClosest (MainData data) {
+	public ClosestImputation (MainData data) {
 		super(data);
 	}
 

@@ -17,6 +17,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.company.utils.ColorFormatPrint.*;
 import static com.company.utils.calculations.MathCalculations.*;
 import static com.company.utils.calculations.StatCalculations.*;
 
@@ -43,6 +44,8 @@ public class HybridMethod {
 	}
 
 	public void runImputation (int columnPredicted) throws IOException {
+		long start = System.currentTimeMillis();
+
 		// check if column predicted is not predicted
 		if (columnPredicted != -1) {
 			for (int i : columnPredictors) {
@@ -76,9 +79,12 @@ public class HybridMethod {
 			}
 		}
 
+		long finish = System.currentTimeMillis();
 		if (evaluation != null) {
 			evaluation.evaluateFinal(statistics);
 		}
+
+		System.out.println("\nTime spent on predicting: " + ANSI_RED_BACKGROUND + (finish - start) + ANSI_RESET + "\n");
 	}
 
 	public void impute (DataPoint dp, int columnPredicted, boolean missingPredictor) throws InvalidDataException {
@@ -166,7 +172,7 @@ public class HybridMethod {
 
 		// choose one of the following methods to test or some other
 		return new MeanImputationMethod(data);
-//		return new UseClosest(data);
+//		return new ClosestImputation(data);
 //		return new MedianImputationMethod(data);
 //		return new LinearRegressionJSATMethod(data);
 //		return new MultiplePolynomialRegressionJSATMethod(data);

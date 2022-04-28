@@ -207,9 +207,11 @@ public class DatasetManipulation {
 		data.setTrain(new SimpleDataSet(dataPointsTrain));
 
 		// remove predictors if values in their columns are the same
-		data.setColumnPredictors(Arrays.stream(data.getColumnPredictors())
-			.filter(pred -> !StatCalculations.allEqual(data.getTrain().getDataMatrix().getColumn(pred).arrayCopy()))
-			.toArray());
+		if (!Boolean.parseBoolean(configManager.get("input.runTest"))) {
+			data.setColumnPredictors(Arrays.stream(data.getColumnPredictors())
+				.filter(pred -> !StatCalculations.allEqual(data.getTrain().getDataMatrix().getColumn(pred).arrayCopy()))
+				.toArray());
+		}
 	}
 
 	/** Split dataset

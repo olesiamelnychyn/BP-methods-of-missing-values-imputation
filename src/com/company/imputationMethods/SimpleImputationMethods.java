@@ -17,13 +17,13 @@ public class SimpleImputationMethods {
 	public ImputationMethod imputeSimple (MainData data, Statistics stat) {
 		if (data.getTrain() == null) {
 			// prepare datasets
-			DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(data, datasetMissing, datasetMissing.getDataPoints().indexOf(data.getDp()), 8);
+			DatasetManipulation.getToBeImputedAndTrainDeepCopiesAroundIndex(data, datasetMissing, datasetMissing.getDataPoints().indexOf(data.getDp()), 14);
 		}
 
 		// select appropriate imputation method
-		if (isCloseToMean(data, stat)) {
+		if (getMeanDevPercent(data) <= stat.getThresholds()[0]) {
 			return new MeanImputationMethod(data);
-		} else if (isCloseToMedian(data, stat)) {
+		} else if (getMedianDevPercent(data) <= stat.getThresholds()[1]) {
 			return new MedianImputationMethod(data);
 		} else if (data.getColumnPredictors().length == 1) {
 			int columnPredictor = data.getColumnPredictors()[0];
@@ -31,15 +31,24 @@ public class SimpleImputationMethods {
 				return new LinearInterpolatorApacheMethod(data, true);
 			} else if (isStrictlyDecreasing(data, data.getColumnPredicted()) && isStrictlyDecreasing(data, columnPredictor)) {
 				return new LinearInterpolatorApacheMethod(data, false);
-			} else if (hasLinearRelationship(data, stat)) {
+			} else if (getLinearCorr(data) > stat.getThresholds()[2]) {
 				return new LinearRegressionJSATMethod(data);
 			} else {
-				int order = getPolynomialOrderSimple(data, stat);
+				int order = getPolynomialOrderSimple(data, stat.getThresholds()[3]);
 				if (order != -1) {
 					return new PolynomialCurveFitterApacheMethod(data, order);
 				}
 			}
+			if (useClosest(data)) {
+				return new ClosestImputation(data);
+			}
 		}
+
 		return new MeanImputationMethod(data);
+	}
+
+	private boolean useClosest (MainData data) {
+		return isWithinInterval(getMeanDevPercent(data), new double[]{0.32, 0.35})
+			&& isWithinInterval(getLinearCorr(data), new double[]{0.09, 0.16});
 	}
 }

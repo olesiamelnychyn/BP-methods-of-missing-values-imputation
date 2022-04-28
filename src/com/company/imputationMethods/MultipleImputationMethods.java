@@ -21,21 +21,32 @@ public class MultipleImputationMethods {
 	public ImputationMethod imputeMultiple (MainData data, Statistics stat) {
 		// prepare datasets
 		DatasetManipulation.getToBeImputedAndTrainDeepCopiesByClosestDistance(data, datasetMissing, datasetMissing.getDataPoints().indexOf(data.getDp()), 12, weighted);
+
+		// After composing train dataset some predictor columns contain same values, such columns' indexes are excluded from predictors.
 		if (data.getColumnPredictors().length == 1) {
-			// After composing train dataset some predictor columns contain same values, such columns' indexes are excluded from predictors.
-			// In case only one predictor left return null, so the program can continue with single imputation method.
-			return null;
+			double polyRel = getPolyCorr(data);
+
+			if (useMultiplePolynomialForSinglePredictor(stat, polyRel)) {
+				return new MultiplePolynomialRegressionJSATMethod(data, 2);
+			}
+
+			return new PolynomialCurveFitterApacheMethod(data, getPolynomialOrderSimple(data, 0.0));
 		}
 
-		// select appropriate imputation method
-		if (hasLinearRelationship(data, stat)) {
+		if (getLinearCorr(data) > stat.getThresholds()[2]) {
 			// linear regression is a special way of polynomial regression with 1st degree
+			// (it is default therefore we do not pass it)
 			return new MultiplePolynomialRegressionJSATMethod(data);
-		} else if (hasPolynomialRelation(data, stat)) {
+		} else if (getPolyCorr(data) > stat.getThresholds()[3]) {
 			return new MultiplePolynomialRegressionJSATMethod(data, 2);
 		} else if (useMultiDimensionalAsDefault) {
 			return new MultiDimensionalMultipleImputation(data, datasetMissing, stat);
 		}
 		return new MeanImputationMethod(data);
 	}
+
+	private boolean useMultiplePolynomialForSinglePredictor (Statistics stat, double polyRel) {
+		return (stat.getKurtosis() > 0 && (polyRel < 0.14 || polyRel > 0.47)) || (stat.getKurtosis() < 0 && polyRel < 0.3 && polyRel > 0.15);
+	}
 }
+

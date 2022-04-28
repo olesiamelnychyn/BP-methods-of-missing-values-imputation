@@ -2,6 +2,9 @@ from posixpath import split
 
 matches = ["Prerequisites", "Dataset Size", "Number of missing values", "Column Predictors", "Statistics of predicted value"]
 file1 = open('CCPP_results_comparison.txt', 'r')
+file2 = open('YellowStoneElev_results_comparison.txt', 'r')
+file3 = open('combined_multiple_results_comparison.txt', 'r')
+
 Lines = file1.readlines()
 
 for line in Lines:

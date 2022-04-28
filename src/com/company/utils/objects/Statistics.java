@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 
-import static com.company.utils.DatasetManipulation.removeNanRows;
+import static com.company.utils.DatasetManipulation.removeNanRowsByColumns;
 import static com.company.utils.calculations.StatCalculations.getCorrMultiple;
 import static com.company.utils.calculations.StatCalculations.getDevMedian;
 
@@ -144,9 +144,15 @@ public class Statistics {
 		};
 	}
 
+	/** Calculate:
+	 * - multiple correlation coefficient between predicted column and predictors
+	 * - Pearson correlation coefficient between predicted column and each predictor separately
+	 *
+	 * @param dataSet
+	 */
 	private void calcCorr (SimpleDataSet dataSet) {
 		int[] cols = IntStream.concat(IntStream.of(columnPredictors), IntStream.of(columnPredicted)).toArray();
-		correlationMultiple = getCorrMultiple(removeNanRows(dataSet, cols), columnPredicted, columnPredictors);
+		correlationMultiple = getCorrMultiple(removeNanRowsByColumns(dataSet, cols), columnPredicted, columnPredictors);
 		for (int predictor : columnPredictors) {
 			calculateCorrelationSimple(dataSet, predictor);
 		}
@@ -160,23 +166,24 @@ public class Statistics {
 
 		double closeMean;
 		if (standardDeviation / mean > 0.75) {
-			closeMean = 0.3;
+			closeMean = multiple ? 0.1 : 0.3;
 		} else if (standardDeviation / mean > 0.50) {
-			closeMean = 0.5;
+			closeMean = multiple ? 0.1 : 0.5;
 		} else {
-			closeMean = 0.7;
+			closeMean = multiple ? 0.05 : 0.1;
 		}
 
 		double closeMedian;
-		if ((skewness > 1 || skewness < -1) && kurtosis < 0) {
-			closeMedian = 0.5;
+		if (devMedian / percentiles[4] > 0.75) {
+			closeMedian = 0.4;
+		} else if (devMedian / percentiles[4] > 0.50) {
+			closeMedian = multiple ? 0.2 : 0.07;
 		} else {
-			closeMedian = 0.23;
+			closeMedian = multiple ? 0.05 : 0.07;
 		}
 
-		double linearRel = multiple ? 0.45 : 0.368;
-
-		double polynomialOrder = 0.3265;
+		double linearRel = multiple ? 0.9 : (skewness < -0.4 ? 0.8 : 0.6);
+		double polynomialOrder = multiple ? 0.81 : (skewness < -0.4 ? 0.8 : 0.7);
 
 		thresholds = new double[]{
 			closeMean, // for isCloseToMean()

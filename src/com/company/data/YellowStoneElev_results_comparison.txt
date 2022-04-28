@@ -26,11 +26,11 @@ Prerequisites:
 
 
 Hybrid:
-	Mean-Squared Error: 199,99
+	Mean-Squared Error: 200,08
 	Root Mean-Squared Error: 14,14
 	Mean-Absolute Error: 9,9
 	Relative-Squared Error: 0,8%
-	Root Relative-Squared Error: 8,94%
+	Root Relative-Squared Error: 8,95%
 	Relative-Absolute Error: 7,25%
 	Pearson Correlation Coefficient: 1
 	Mean Absolute Percentage Error: 0,42%
@@ -42,17 +42,17 @@ Mean:
 	Relative-Squared Error: 100%
 	Root Relative-Squared Error: 100%
 	Relative-Absolute Error: 99,99%
-	Pearson Correlation Coefficient: �
+	Pearson Correlation Coefficient: NaN
 	Mean Absolute Percentage Error: 5,72%
 
 Median:
-	Mean-Squared Error: 25339,25
+	Mean-Squared Error: 25339,18
 	Root Mean-Squared Error: 159,18
 	Mean-Absolute Error: 136,37
 	Relative-Squared Error: 101,36%
 	Root Relative-Squared Error: 100,68%
 	Relative-Absolute Error: 99,87%
-	Pearson Correlation Coefficient: �
+	Pearson Correlation Coefficient: NaN
 	Mean Absolute Percentage Error: 5,67%
 
 Multiple Linear Regression:
@@ -86,7 +86,7 @@ Polynomial Curve Fitter (ApacheMethod) with 2 order:
 		Pearson Correlation Coefficient: 0,99
 		Mean Absolute Percentage Error: 0,75%
 	On column 1:
-		Mean-Squared Error: 215,85
+		Mean-Squared Error: 215,84
 		Root Mean-Squared Error: 14,69
 		Mean-Absolute Error: 10,36
 		Relative-Squared Error: 0,86%
@@ -106,11 +106,11 @@ Polynomial Curve Fitter (ApacheMethod) with 3 order:
 		Pearson Correlation Coefficient: 0,99
 		Mean Absolute Percentage Error: 0,75%
 	On column 1:
-		Mean-Squared Error: 201,09
-		Root Mean-Squared Error: 14,18
-		Mean-Absolute Error: 9,91
-		Relative-Squared Error: 0,8%
-		Root Relative-Squared Error: 8,97%
+		Mean-Squared Error: 201,73
+		Root Mean-Squared Error: 14,2
+		Mean-Absolute Error: 9,92
+		Relative-Squared Error: 0,81%
+		Root Relative-Squared Error: 8,98%
 		Relative-Absolute Error: 7,26%
 		Pearson Correlation Coefficient: 1
 		Mean Absolute Percentage Error: 0,42%

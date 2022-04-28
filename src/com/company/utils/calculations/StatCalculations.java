@@ -52,44 +52,58 @@ public class StatCalculations {
 		return true;
 	}
 
-	static public boolean isCloseToMean (MainData data, Statistics statistics) {
+	/** Calculate proportion between standard deviation and mean
+	 *
+	 * @param data contains column to calculate in
+	 */
+	static public double getMeanDevPercent (MainData data) {
 		SimpleDataSet dataSet = data.getTrain();
-		double std = dataSet.getDataMatrix().getColumn(data.getColumnPredicted()).standardDeviation();
-		double mean = dataSet.getDataMatrix().getColumn(data.getColumnPredicted()).mean();
-		return std / mean <= statistics.getThresholds()[0];
+		Vec columnPredicted = dataSet.getDataMatrix().getColumn(data.getColumnPredicted());
+		double std = columnPredicted.standardDeviation();
+		double mean = abs(columnPredicted.mean()) + 0.000001; // so not to divide by zero
+
+		return std / mean;
 	}
 
-	static public boolean isCloseToMedian (MainData data, Statistics statistics) {
-		SimpleDataSet dataSet = data.getTrain();
-		double dist = 0.0;
-		double median = dataSet.getDataMatrix().getColumn(data.getColumnPredicted()).median();
-		for (DataPoint dp : dataSet.getDataPoints()) {
-			dist += abs(dp.getNumericalValues().get(data.getColumnPredicted()) - median);
-		}
-		return dist / 8 / median <= statistics.getThresholds()[1];
+	/** Calculate proportion between deviation from median (inspired by standard deviation) and median itself
+	 *
+	 * @param data contains column to calculate in
+	 */
+	static public double getMedianDevPercent (MainData data) {
+		Vec column = data.getTrain().getDataMatrix().getColumn(data.getColumnPredicted());
+		double median = column.median();
+		double dev = getDevMedian(median, column);
+		return abs(dev / median);
 	}
 
-	static public boolean hasLinearRelationship (MainData data, Statistics statistics) {
+	/** Get correlation coefficient
+	 * If there is more than one predictor, multiple correlation coefficient is returned.
+	 *
+	 * @param data
+	 */
+	static public double getLinearCorr (MainData data) {
+		SimpleDataSet dataSet = data.getTrain();
+		int[] columnPredictors = data.getColumnPredictors();
+		int columnPredicted = data.getColumnPredicted();
+
 		double corr;
-		SimpleDataSet dataSet = data.getTrain();
-		if (data.getColumnPredictors().length > 1) {
-			//calculate pearson correlation with more than one predictor
-			corr = getCorrMultiple(dataSet, data.getColumnPredicted(), data.getColumnPredictors());
+		if (columnPredictors.length > 1) {
+			//calculate multiple correlation coefficient
+			corr = getCorrMultiple(dataSet, columnPredicted, columnPredictors);
 		} else {
-			//calculate pearson correlation with one predictor
-			corr = correlation(dataSet.getNumericColumn(data.getColumnPredicted()), dataSet.getNumericColumn(data.getColumnPredictors()[0]), true);
+			//calculate pearson correlation coefficient with one predictor
+			corr = correlation(dataSet.getNumericColumn(columnPredicted), dataSet.getNumericColumn(columnPredictors[0]), true);
 		}
-		return abs(corr) > statistics.getThresholds()[2];
-
+		return abs(corr);
 	}
 
 	/**
 	 * Get the most optimal polynomial order.
 	 * @param data dataset, predicted column and predictors together
-	 * @param statistics statistics
+	 * @param threshold threshold to compare with (the minimum value of the corr coefficient)
 	 * @return order
 	 */
-	static public int getPolynomialOrderSimple (MainData data, Statistics statistics) {
+	static public int getPolynomialOrderSimple (MainData data, double threshold) {
 		SimpleDataSet dataSet = data.getTrain();
 		int n = dataSet.getSampleSize();
 		// create raw polynomials of values in columnPredictor
@@ -104,10 +118,10 @@ public class StatCalculations {
 		// calculate correlations between raw polynomials and values in columnPredicted
 		double[] corr = new double[4];
 		for (int pow = 1; pow < 4; pow++) {
-			corr[pow] = correlation(dataSet.getNumericColumn(data.getColumnPredicted()), new DenseVector(powPred[pow]), true);
+			corr[pow] = abs(correlation(dataSet.getNumericColumn(data.getColumnPredicted()), new DenseVector(powPred[pow]), true));
 		}
 		int iMax = getMax(corr); //choose the best correlation
-		if (abs(corr[iMax]) < statistics.getThresholds()[3]) {
+		if (abs(corr[iMax]) < threshold) {
 			return -1;
 		}
 		return iMax + 1;
@@ -116,10 +130,9 @@ public class StatCalculations {
 	/**
 	 * Whether there is any polynomial relationship for multiple regression.
 	 *
-	 * @param data dataset, preicted column and predictors together
-	 * @param statistics statistics
+	 * @param data dataset, predicted column and predictors together
 	 */
-	static public boolean hasPolynomialRelation (MainData data, Statistics statistics) {
+	static public double getPolyCorr (MainData data) {
 		SimpleDataSet dataSet = data.getTrain();
 		ArrayList<DataPoint> dps = new ArrayList<>();
 
@@ -136,7 +149,7 @@ public class StatCalculations {
 		SimpleDataSet rawPolySample = new SimpleDataSet(dps);
 
 		// calculate correlations between raw polynomials and values in columnPredicted
-		return abs(getCorrMultiple(rawPolySample, data.getColumnPredicted(), data.getColumnPredictors())) > statistics.getThresholds()[2];
+		return abs(getCorrMultiple(rawPolySample, data.getColumnPredicted(), data.getColumnPredictors()));
 	}
 
 	/** Calculate pearson correlation with multiple predictors
