@@ -21,6 +21,12 @@ public class PolynomialCurveFitterApacheMethod extends ImputationMethod {
 		this.order = order;
 	}
 
+	public PolynomialCurveFitterApacheMethod (MainData data, int order, int indexPredictor) {
+		super(data);
+		this.columnPredictor = data.getColumnPredictors()[indexPredictor];
+		this.order = order;
+	}
+
 	public void preprocessData () {
 		obs = new WeightedObservedPoints();
 		for (DataPoint dp : trainingCopy.getDataPoints()) {

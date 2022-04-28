@@ -33,9 +33,9 @@ public class MultiplePolynomialRegressionJSATMethod extends ImputationMethod {
 	public void preprocessData () {
 		SimpleDataSet trainingCopy2 = DatasetManipulation.excludeNonPredictors(trainingCopy, columnPredictors, columnPredicted);
 		SimpleDataSet toBePredicted2 = DatasetManipulation.excludeNonPredictors(toBePredicted, columnPredictors, columnPredicted);
+
 		int[] predictors = Arrays.copyOf(columnPredictors, columnPredictors.length);
 		if (degree > 1) {
-
 			for (int i = 0; i < predictors.length; i++) {
 				predictors[i] = i + 1;
 			}
@@ -46,12 +46,13 @@ public class MultiplePolynomialRegressionJSATMethod extends ImputationMethod {
 			trainingCopy2 = DatasetManipulation.addPowerColumns(trainingCopy2, degree, predictors, 0);
 			toBePredicted2 = DatasetManipulation.addPowerColumns(toBePredicted2, degree, predictors, 0);
 		}
+
 		regressionDataSet = new SimpleDataSet(trainingCopy2.shallowClone().getDataPoints().subList(0, trainingCopy2.getSampleSize())).asRegressionDataSet(0);
 		regressionTestDataSet = new SimpleDataSet(toBePredicted2.shallowClone().getDataPoints().subList(0, toBePredicted2.getSampleSize())).asRegressionDataSet(0);
 	}
 
 	public void fit () {
-		multipleLinearRegression = new MultipleLinearRegression();
+		multipleLinearRegression = new MultipleLinearRegression(false);
 		multipleLinearRegression.train(regressionDataSet);
 	}
 
@@ -61,7 +62,7 @@ public class MultiplePolynomialRegressionJSATMethod extends ImputationMethod {
 	}
 
 	public void print () {
-		System.out.println(ANSI_PURPLE_BACKGROUND + "MultipleLinearRegressionJSAT" + ANSI_RESET);
+		System.out.println(ANSI_PURPLE_BACKGROUND + "Multiple" + (degree == 1 ? "Linear" : "Polynomial") + "RegressionJSAT" + ANSI_RESET);
 		System.out.println("Weights: " + multipleLinearRegression.getRawWeight());
 	}
 

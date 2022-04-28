@@ -23,7 +23,7 @@ public class LinearInterpolatorApacheMethod extends ImputationMethod {
 	}
 
 	public void preprocessData () {
-		// if values are decreasing than reverse dataset
+		// if values are decreasing then reverse dataset
 		if (!increasing) {
 			trainingCopy = DatasetManipulation.reverseDataset(trainingCopy);
 		}

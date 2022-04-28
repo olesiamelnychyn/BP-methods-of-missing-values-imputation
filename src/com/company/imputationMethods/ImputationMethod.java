@@ -7,6 +7,13 @@ import jsat.classifiers.DataPoint;
 
 import java.util.ArrayList;
 
+/** Interface of all imputation methods.
+ * Defines main methods of each imputation method:
+ * - preprocessData() - any data manipulation which needs to be done before training
+ * - fit() - train model, defining coefficients, etc.
+ * - print() - prints out main info about the method (e.g. coefficients)
+ * - predict() - returns a predicted value for passed record
+ */
 public abstract class ImputationMethod {
 	protected SimpleDataSet trainingCopy;
 	protected SimpleDataSet toBePredicted;

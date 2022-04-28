@@ -13,7 +13,6 @@ import static com.company.utils.ColorFormatPrint.ANSI_RESET;
 
 public class MultipleRegressionJamaMethod extends ImputationMethod {
 	private int[] columnPredictors;
-	private boolean polynomial;
 	private int degree;
 	private double[][] regressionTrainingDataSet;
 	private double[][] regressionTestDataSet;
@@ -22,14 +21,12 @@ public class MultipleRegressionJamaMethod extends ImputationMethod {
 	public MultipleRegressionJamaMethod (MainData data) {
 		super(data);
 		this.columnPredictors = data.getColumnPredictors();
-		this.polynomial = false;
-		this.degree = 0;
+		this.degree = 1;
 	}
 
 	public MultipleRegressionJamaMethod (MainData data, int degree) {
 		super(data);
 		this.columnPredictors = data.getColumnPredictors();
-		this.polynomial = true;
 		this.degree = degree;
 
 	}
@@ -39,8 +36,7 @@ public class MultipleRegressionJamaMethod extends ImputationMethod {
 		SimpleDataSet toBePredicted2 = DatasetManipulation.excludeNonPredictors(toBePredicted, columnPredictors, columnPredicted);
 
 		int[] predictors = Arrays.copyOf(columnPredictors, columnPredictors.length);
-		if (polynomial) {
-
+		if (degree > 1) {
 			for (int i = 0; i < predictors.length; i++) {
 				predictors[i] = i + 1;
 			}
@@ -77,10 +73,7 @@ public class MultipleRegressionJamaMethod extends ImputationMethod {
 	}
 
 	public void print () {
-		System.out.println(ANSI_PURPLE_BACKGROUND + (polynomial ? "MultiplePolynomialRegressionJama" : "MultipleLinearRegressionJama ") + ANSI_RESET);
-		if (polynomial) {
-			System.out.println("Polynomial degree: " + degree);
-		}
+		System.out.println(ANSI_PURPLE_BACKGROUND + (degree > 1 ? "MultiplePolynomialRegressionJama" : "MultipleLinearRegressionJama ") + ANSI_RESET);
 		System.out.print("Coefficients: [");
 		for (int i = 0; i < columnPredictors.length - 1; i++) {
 			System.out.print(multipleLinearRegression.beta(i) + ",");
