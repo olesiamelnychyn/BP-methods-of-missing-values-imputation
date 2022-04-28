@@ -373,9 +373,15 @@ public class DatasetManipulation {
 		}
 	}
 
-	static public SimpleDataSet removeNanRows (SimpleDataSet dataSet, int[] cols) {
+	/** Remove record (row) from dataset if there is a missing value in any of the passed column.
+	 *
+	 * @param dataSet
+	 * @param columns columns to check for missing values
+	 * @return new dataset without rows with NaN in corresponding columns
+	 */
+	static public SimpleDataSet removeNanRowsByColumns (SimpleDataSet dataSet, int[] columns) {
 		return new SimpleDataSet(dataSet.getDataPoints().stream()
-			.filter(dp -> getIntersection(getIndexesOfNull(dp), cols).length == 0)
+			.filter(dp -> getIntersection(getIndexesOfNull(dp), columns).length == 0)
 			.collect(Collectors.toList()));
 	}
 

@@ -15,8 +15,8 @@ import static com.company.utils.ColorFormatPrint.ANSI_RESET;
 public class MultiplePolynomialRegressionJSATMethod extends ImputationMethod {
 	private int[] columnPredictors;
 	private int degree = 1;
-	private RegressionDataSet regressionDataSet;
-	private RegressionDataSet regressionTestDataSet;
+	private RegressionDataSet regressionTrainingDataSet;
+	private RegressionDataSet regressionToBePredictedDataSet;
 	private MultipleLinearRegression multipleLinearRegression;
 
 	public MultiplePolynomialRegressionJSATMethod (MainData data) {
@@ -36,6 +36,7 @@ public class MultiplePolynomialRegressionJSATMethod extends ImputationMethod {
 
 		int[] predictors = Arrays.copyOf(columnPredictors, columnPredictors.length);
 		if (degree > 1) {
+			//prepare indexes of predictors
 			for (int i = 0; i < predictors.length; i++) {
 				predictors[i] = i + 1;
 			}
@@ -47,17 +48,17 @@ public class MultiplePolynomialRegressionJSATMethod extends ImputationMethod {
 			toBePredicted2 = DatasetManipulation.addPowerColumns(toBePredicted2, degree, predictors, 0);
 		}
 
-		regressionDataSet = new SimpleDataSet(trainingCopy2.shallowClone().getDataPoints().subList(0, trainingCopy2.getSampleSize())).asRegressionDataSet(0);
-		regressionTestDataSet = new SimpleDataSet(toBePredicted2.shallowClone().getDataPoints().subList(0, toBePredicted2.getSampleSize())).asRegressionDataSet(0);
+		regressionTrainingDataSet = new SimpleDataSet(trainingCopy2.shallowClone().getDataPoints().subList(0, trainingCopy2.getSampleSize())).asRegressionDataSet(0);
+		regressionToBePredictedDataSet = new SimpleDataSet(toBePredicted2.shallowClone().getDataPoints().subList(0, toBePredicted2.getSampleSize())).asRegressionDataSet(0);
 	}
 
 	public void fit () {
 		multipleLinearRegression = new MultipleLinearRegression(false);
-		multipleLinearRegression.train(regressionDataSet);
+		multipleLinearRegression.train(regressionTrainingDataSet);
 	}
 
 	public double predict (DataPoint dp) {
-		DataPoint dataPoint = regressionTestDataSet.getDataPoint(toBePredicted.getDataPoints().indexOf(dp));
+		DataPoint dataPoint = regressionToBePredictedDataSet.getDataPoint(toBePredicted.getDataPoints().indexOf(dp));
 		return multipleLinearRegression.regress(dataPoint);
 	}
 

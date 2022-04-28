@@ -5,6 +5,9 @@ import jsat.classifiers.DataPoint;
 import org.apache.commons.math3.fitting.PolynomialCurveFitter;
 import org.apache.commons.math3.fitting.WeightedObservedPoints;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 import static com.company.utils.ColorFormatPrint.ANSI_PURPLE_BACKGROUND;
 import static com.company.utils.ColorFormatPrint.ANSI_RESET;
 import static com.company.utils.calculations.MathCalculations.polyValue;
@@ -45,10 +48,8 @@ public class PolynomialCurveFitterApacheMethod extends ImputationMethod {
 
 	public void print () {
 		System.out.println(ANSI_PURPLE_BACKGROUND + "PolynomialCurveFitter (columnPredictor=" + columnPredictor + ")" + ANSI_RESET);
-		System.out.print("Coefficients: [");
-		for (int i = 0; i < coefficients.length - 1; i++) {
-			System.out.print(coefficients[i] + ",");
-		}
-		System.out.println(coefficients[coefficients.length - 1] + "]");
+		System.out.println(Arrays.stream(coefficients)
+			.mapToObj(String::valueOf)
+			.collect(Collectors.joining(", ", "Coefficients: [", "]")));
 	}
 }

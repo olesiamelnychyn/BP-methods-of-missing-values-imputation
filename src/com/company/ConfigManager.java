@@ -34,6 +34,7 @@ public class ConfigManager {
 	}
 
 	// store typed in values in the config.properties file
+	// !!! will rewrite existing and all commented out test data will disappear
 	public void store () {
 		try {
 			FileOutputStream outputStream = new FileOutputStream(filename);

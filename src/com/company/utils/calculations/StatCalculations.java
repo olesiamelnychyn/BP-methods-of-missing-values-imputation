@@ -19,6 +19,10 @@ import static jsat.linear.distancemetrics.PearsonDistance.correlation;
 
 public class StatCalculations {
 
+	/** Determine if the values in the column are strictly increasing with each record
+	 * @param data obj which contains all column
+	 * @param column index of column
+	 */
 	static public boolean isStrictlyIncreasing (MainData data, int column) {
 		SimpleDataSet dataSet = data.getTrain();
 		double current = dataSet.getDataPoint(0).getNumericalValues().get(column);
@@ -31,6 +35,10 @@ public class StatCalculations {
 		return true;
 	}
 
+	/** Determine if the values in the column are strictly decreasing with each record
+	 * @param data obj which contains all column
+	 * @param column index of column
+	 */
 	static public boolean isStrictlyDecreasing (MainData data, int column) {
 		SimpleDataSet dataSet = data.getTrain();
 		double current = dataSet.getDataPoint(0).getNumericalValues().get(column);
@@ -251,11 +259,11 @@ public class StatCalculations {
 	/**
 	 * Checks whether the value is within the max and min of the column
 	 * @param val value
-	 * @param diffs array that contain min and max
+	 * @param interval array that contain min and max
 	 */
-	public static boolean isWithinMaxAndMin (double val, double[] diffs) {
-		return Double.compare(diffs[0], val) <= 0 &&
-			Double.compare(diffs[1], val) >= 0;
+	public static boolean isWithinInterval (double val, double[] interval) {
+		return Double.compare(interval[0], val) <= 0 &&
+			Double.compare(interval[1], val) >= 0;
 	}
 
 	/** Checks whether the step from logically the closest value is within the max and min range of differences the column
@@ -265,8 +273,12 @@ public class StatCalculations {
 	 */
 	public static boolean isStepWithinMaxAndMinStep (double newValue, MainData data) {
 		double[] diffs = calcDiffs(data.getTrain().getNumericColumn(data.getColumnPredicted()));
+		// if the min step is less than 1% of the median, then we set the minimum dof to 0.0
+		if (diffs[0] < data.getTrain().getDataMatrix().getColumn(data.getColumnPredicted()).median() * 0.01) {
+			diffs[0] = 0.0;
+		}
 		//returns true on empty stream, we cannot say it is not within step borders if there are no closest record/-s
-		return Arrays.stream(data.getStep(newValue)).allMatch(i -> isWithinMaxAndMin(i, diffs));
+		return Arrays.stream(data.getStep(newValue)).allMatch(i -> isWithinInterval(i, diffs));
 	}
 
 	/** Compute correlation matrix

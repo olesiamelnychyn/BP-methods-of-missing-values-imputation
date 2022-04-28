@@ -107,7 +107,9 @@ public class MathCalculations {
 		return 1 / (dist + 0.01);
 	}
 
-	// normalize weight of data points, so they sum up to 1
+	/**
+	 * Normalize weight of data points, so they sum up to 1
+	 */
 	public static void normalizeWeights (List<DataPoint> dataPoints) {
 		double sum = dataPoints
 			.stream()
@@ -118,6 +120,13 @@ public class MathCalculations {
 		}
 	}
 
+	/**
+	 * Normalize one value
+	 * @param x value
+	 * @param max max in set
+	 * @param min min in set
+	 * @param n number of values in set
+	 */
 	public static double normalize (double x, double max, double min, double n) {
 		if (Double.compare(min, max) == 0) {
 			return 1 / n;

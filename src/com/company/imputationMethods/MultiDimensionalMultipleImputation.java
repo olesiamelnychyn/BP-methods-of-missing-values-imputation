@@ -4,11 +4,8 @@ import com.company.utils.objects.MainData;
 import com.company.utils.objects.Statistics;
 import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
-import jsat.linear.DenseVector;
-import jsat.linear.Vec;
 
 import java.util.ArrayList;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.company.utils.ColorFormatPrint.ANSI_PURPLE_BACKGROUND;
@@ -16,9 +13,7 @@ import static com.company.utils.ColorFormatPrint.ANSI_RESET;
 
 public class MultiDimensionalMultipleImputation extends ImputationMethod {
 	MainData data;
-	int[] columnPredictors;
 	SimpleDataSet datasetMissing;
-	DataPoint dp;
 	Statistics stat;
 	ArrayList<ImputationMethod> methods = new ArrayList<>();
 

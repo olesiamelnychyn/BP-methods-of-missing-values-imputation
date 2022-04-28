@@ -7,6 +7,8 @@ import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.company.utils.ColorFormatPrint.ANSI_PURPLE_BACKGROUND;
 import static com.company.utils.ColorFormatPrint.ANSI_RESET;
@@ -37,6 +39,7 @@ public class MultipleRegressionJamaMethod extends ImputationMethod {
 
 		int[] predictors = Arrays.copyOf(columnPredictors, columnPredictors.length);
 		if (degree > 1) {
+			//prepare indexes of predictors
 			for (int i = 0; i < predictors.length; i++) {
 				predictors[i] = i + 1;
 			}
@@ -74,10 +77,9 @@ public class MultipleRegressionJamaMethod extends ImputationMethod {
 
 	public void print () {
 		System.out.println(ANSI_PURPLE_BACKGROUND + (degree > 1 ? "MultiplePolynomialRegressionJama" : "MultipleLinearRegressionJama ") + ANSI_RESET);
-		System.out.print("Coefficients: [");
-		for (int i = 0; i < columnPredictors.length - 1; i++) {
-			System.out.print(multipleLinearRegression.beta(i) + ",");
-		}
-		System.out.println(multipleLinearRegression.beta(columnPredictors.length) + "]");
+		System.out.println(IntStream.range(0, columnPredictors.length)
+			.mapToDouble(multipleLinearRegression::beta)
+			.mapToObj(String::valueOf)
+			.collect(Collectors.joining(", ", "Coefficients: [", "]")));
 	}
 }

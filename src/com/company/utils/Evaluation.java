@@ -28,7 +28,7 @@ public class Evaluation {
 		this.printOnlyFinal = printOnlyFinal;
 	}
 
-	/** Store predicted value in the evaluation object for calculating performance measures in the future
+	/** Store predicted value final dataset and in the evaluation object for calculating performance measures in the future
 	 *
 	 * @param columnPredicted
 	 * @param toBePredicted

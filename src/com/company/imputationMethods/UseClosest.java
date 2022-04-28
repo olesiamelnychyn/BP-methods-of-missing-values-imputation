@@ -36,7 +36,6 @@ public class UseClosest extends ImputationMethod {
 		return closestValue;
 	}
 
-	@Override
 	public void print () {
 		System.out.println(ANSI_PURPLE_BACKGROUND + "Closest Imputation" + ANSI_RESET + "\nClosest: [" + closestValue + "]");
 	}
