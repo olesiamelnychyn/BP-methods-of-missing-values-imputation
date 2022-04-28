@@ -4,7 +4,6 @@ import jsat.SimpleDataSet;
 import jsat.classifiers.DataPoint;
 
 import static java.lang.Math.abs;
-import static jsat.math.MathTricks.min;
 
 /**
  * Helper object that stores main information needed by the imputation methods
@@ -16,23 +15,30 @@ public class MainData {
 	private int columnPredicted;
 	private DataPoint dp;
 	private DataPoint[] toCountStepWith = new DataPoint[]{null, null};
+	private boolean multiple;
 
-	public MainData (int[] columnPredictors, int columnPredicted, DataPoint dp) {
+	public MainData (int[] columnPredictors, int columnPredicted, DataPoint dp, boolean multiple) {
 		this.columnPredictors = columnPredictors;
 		this.columnPredicted = columnPredicted;
 		this.dp = dp;
+		this.multiple = multiple;
 	}
 
-	public MainData (int[] columnPredictors, int columnPredicted, DataPoint dp, SimpleDataSet train, SimpleDataSet impute) {
+	public MainData (int[] columnPredictors, int columnPredicted, DataPoint dp, SimpleDataSet train, SimpleDataSet impute, boolean multiple) {
 		this.columnPredictors = columnPredictors;
 		this.columnPredicted = columnPredicted;
 		this.dp = dp;
 		this.train = train;
 		this.impute = impute;
+		this.multiple = multiple;
 	}
 
 	public DataPoint getDp () {
 		return dp;
+	}
+
+	public boolean isMultiple () {
+		return multiple;
 	}
 
 	public int getColumnPredicted () {

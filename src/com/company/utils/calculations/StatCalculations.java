@@ -207,6 +207,16 @@ public class StatCalculations {
 		return Arrays.stream(arr).distinct().count() == 1;
 	}
 
+	/** Get deviation from median, inspired by standard deviation
+	 *
+	 * @param median median value
+	 * @param column column
+	 */
+	public static double getDevMedian (double median, Vec column) {
+		Vec withoutMedian = column.clone().subtract(median);
+		return sqrt(withoutMedian.pairwiseMultiply(withoutMedian).sum() / column.length());
+	}
+
 	/**
 	 * Calculate the min and max step difference ignoring gaps
 	 *

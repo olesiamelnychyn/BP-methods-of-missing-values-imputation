@@ -13,6 +13,7 @@ import java.util.stream.IntStream;
 
 import static com.company.utils.DatasetManipulation.removeNanRows;
 import static com.company.utils.calculations.StatCalculations.getCorrMultiple;
+import static com.company.utils.calculations.StatCalculations.getDevMedian;
 
 /**
  * Class that holds a statistics of the predicted column
@@ -30,6 +31,7 @@ public class Statistics {
 	private double correlationMultiple = Double.NaN;
 	private double[] diffs; // minDiff and maxDiff
 	private double[] thresholds;
+	private double devMedian;
 
 	// statistics for simple imputation
 	public Statistics (SimpleDataSet dataSet, int columnPredicted, int columnPredictor) {
@@ -52,6 +54,7 @@ public class Statistics {
 		calcThresholds(true);
 	}
 
+	// basic statistics, which is common for both simple and multiple imputation cases
 	private void calcBasic (Vec column) {
 		List<Double> latencies = DoubleStream.of(column.arrayCopy()).boxed().sorted().collect(Collectors.toCollection(ArrayList::new));
 
@@ -71,6 +74,7 @@ public class Statistics {
 		standardDeviation = column.standardDeviation();
 		kurtosis = column.kurtosis();
 		skewness = column.skewness();
+		devMedian = getDevMedian(percentiles[4], column);
 	}
 
 	/** Calculate correlation between predicted column and the column passed

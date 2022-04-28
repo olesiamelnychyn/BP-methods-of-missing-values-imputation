@@ -1,7 +1,6 @@
 package com.company.utils;
 
 import com.company.ConfigManager;
-import com.company.utils.calculations.MathCalculations;
 import com.company.utils.calculations.StatCalculations;
 import com.company.utils.objects.MainData;
 import jsat.SimpleDataSet;
@@ -206,6 +205,7 @@ public class DatasetManipulation {
 		data.setToCountStepWith(toCountStepWith);
 		data.setImpute(new SimpleDataSet(dataPointsToBeImputed));
 		data.setTrain(new SimpleDataSet(dataPointsTrain));
+
 		// remove predictors if values in their columns are the same
 		data.setColumnPredictors(Arrays.stream(data.getColumnPredictors())
 			.filter(pred -> !StatCalculations.allEqual(data.getTrain().getDataMatrix().getColumn(pred).arrayCopy()))
@@ -247,6 +247,7 @@ public class DatasetManipulation {
 			DataPoint obj = dataset.getDataPoint(i);
 
 			//if a record has one or more of the predictors' equal to null it cannot be used for prediction
+			// the condition will also be true if there are no predictors
 			if (getIntersection(getIndexesOfNull(obj), data.getColumnPredictors()).length == 0) {
 				//if record contains value in column which is going to be predicted
 				//then add it to the dataset used for prediction,

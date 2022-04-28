@@ -6,7 +6,6 @@ import jsat.math.DescriptiveStatistics;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DecimalFormat;
 
 import static com.company.utils.ColorFormatPrint.*;
 import static java.lang.Math.abs;
@@ -17,12 +16,13 @@ public class PerformanceMeasures {
 	private Vec predicted;
 	private double meanTraining;
 	protected double[] measures;
-	public static DecimalFormat df2 = new DecimalFormat("#.##");
+	private int columnIndex;
 
-	public PerformanceMeasures (Vec actual, Vec predicted, double meanTraining) {
+	public PerformanceMeasures (Vec actual, Vec predicted, double meanTraining, int columnIndex) {
 		this.actual = actual;
 		this.predicted = predicted;
 		this.meanTraining = meanTraining;
+		this.columnIndex = columnIndex;
 		calcMeasures();
 	}
 
@@ -30,6 +30,9 @@ public class PerformanceMeasures {
 		return measures;
 	}
 
+	/**
+	 * Calculates performance measures and saves into a predefined array
+	 */
 	private void calcMeasures () {
 		measures = new double[]{
 			MSError(actual, predicted),
@@ -43,41 +46,43 @@ public class PerformanceMeasures {
 		};
 	}
 
-	public void printAndWriteResults (int columnPredicted) throws IOException {
+	/** Prints out to the console and writes to output file performance measures
+	 *
+	 * @throws IOException
+	 */
+	public void printAndWriteResults () throws IOException {
 		String str = toString();
-		printPerformanceMeasures(str, columnPredicted);
-		writeOutputPerformanceMeasures(str, columnPredicted);
+		printPerformanceMeasures(str);
+		writeOutputPerformanceMeasures(str);
 	}
 
 	public String toString () {
-		return "\n\n\tMean-Squared Error: " + df2.format(measures[0]) +
-			"\n\tRoot Mean-Squared Error: " + df2.format(measures[1]) +
-			"\n\tMean-Absolute Error: " + df2.format(measures[2]) +
-			"\n\tRelative-Squared Error: " + df2.format(measures[3]) +
-			"\n\tRoot Relative-Squared Error: " + df2.format(measures[4]) + "%" +
-			"\n\tRelative-Absolute Error: " + df2.format(measures[5]) + "%" +
-			"\n\tPearson Correlation Coefficient: " + df2.format(measures[6]) +
-			"\n\tMean Absolute Percentage Error: " + df2.format(measures[7]) + "%\n\n";
+		return "\n\n\tMean-Squared Error: " + format(measures[0]) +
+			"\n\tRoot Mean-Squared Error: " + format(measures[1]) +
+			"\n\tMean-Absolute Error: " + format(measures[2]) +
+			"\n\tRelative-Squared Error: " + format(measures[3]) + "%" +
+			"\n\tRoot Relative-Squared Error: " + format(measures[4]) + "%" +
+			"\n\tRelative-Absolute Error: " + format(measures[5]) + "%" +
+			"\n\tPearson Correlation Coefficient: " + format(measures[6]) +
+			"\n\tMean Absolute Percentage Error: " + format(measures[7]) + "%\n\n";
 	}
 
 	/**
 	 * Print out performance measures
 	 * @param str names of the metrics + values
-	 * @param columnPredicted index of column over which the evaluation is performed
 	 */
-	public void printPerformanceMeasures (String str, int columnPredicted) {
-		System.out.print("Performance (Predictions for column " + ANSI_BOLD_ON + ANSI_PURPLE + columnPredicted + ANSI_RESET + ANSI_BOLD_OFF + "):");
+	public void printPerformanceMeasures (String str) {
+		System.out.print("Performance (Predictions for column " + ANSI_BOLD_ON + ANSI_PURPLE + columnIndex + ANSI_RESET + ANSI_BOLD_OFF + "):");
 		System.out.print(ANSI_BOLD_ON + ANSI_PURPLE + str + ANSI_RESET + ANSI_BOLD_OFF);
 	}
 
 	/**
 	 * Write performance measures to the output file for statistics
 	 * @param str names of the metrics + values
-	 * @param columnPredicted index of column over which the evaluation is performed
 	 */
-	public void writeOutputPerformanceMeasures (String str, int columnPredicted) throws IOException {
+	public void writeOutputPerformanceMeasures (String str) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new FileWriter("src/com/company/results.txt", true));
-		String output = "\nPerformance (Predictions for column: " + columnPredicted + "):";
+		String output = "\nPerformance (Predictions for column: " + columnIndex + "):";
 		writer.append(output).append(str);
 		writer.close();
 	}
@@ -106,14 +111,7 @@ public class PerformanceMeasures {
 	 * @return root mean-squared error
 	 */
 	static public double RMSError (Vec actual, Vec predicted) {
-		int n = actual.length();
-		double sum = 0.0;
-		for (int i = 0; i < n; i++) {
-			double x = predicted.get(i) - actual.get(i);
-			sum += x * x;
-		}
-
-		return sqrt(sum / n);
+		return sqrt(MSError(actual, predicted));
 	}
 
 	/** Mean-Absolute Error
@@ -148,7 +146,7 @@ public class PerformanceMeasures {
 			x = actual.get(i) - meanTraining;
 			sumBottom += x * x;
 		}
-		return sumTop / sumBottom;
+		return (sumTop / sumBottom) * 100;
 	}
 
 	/** Root Relative-Squared Error
@@ -198,19 +196,14 @@ public class PerformanceMeasures {
 	 */
 	static public double meanAbsolutePercentageError (Vec actual, Vec predicted) {
 		int n = actual.length();
-		int skipped = 0;
 		double sum = 0.0;
 		for (int i = 0; i < n; i++) {
-			if (actual.get(i) == 0.0) {
-				n--;
-				skipped++;
-				continue;
+			// handle zero case
+			if (Double.compare(actual.get(i), 0.0) == 0) {
+				sum += abs(predicted.get(i) / (0.0 + actual.mean() * 0.01));
+			} else {
+				sum += abs((actual.get(i) - predicted.get(i)) / actual.get(i));
 			}
-			sum += abs((actual.get(i) - predicted.get(i)) / actual.get(i));
-		}
-
-		if (skipped != 0) {
-			System.out.println("Number of records skipped when calculating Mean Percentage Error due to equality to 0: " + skipped);
 		}
 		return sum * 100 / n;
 	}
