@@ -1,0 +1,117 @@
+Prerequisites:
+	Dataset Size: 15000
+	Number of missing values: 3675
+	Column Predicted: 2
+	Column Predictors: 0, 1
+	Statistics of predicted value:
+		Mean: 2382.585710001897
+		Min (0th percentile): 2074.34619140625
+		15th percentile: 2206.79907226562
+		25th percentile: 2236.44311523438
+		35th percentile: 2282.94311523438
+		Median (50th percentile): 2365.001953125
+		65th percentile: 2456.44384765625
+		75th percentile: 2511.55493164062
+		85th percentile: 2568.73364257812
+		Max (100th percentile): 2729.82153320312
+		Variance: 25144.521806095647
+		Standard deviation: 158.57024249869724
+		Kurtosis: -1.0053314531587971
+		Skewness: 0.30927419247117666
+		Correlation Multiple: 0.9073490253046906
+		Pearson Correlation Coefficient with predictor (column 0): 0.08147252514744995
+		Pearson Correlation Coefficient with predictor (column 1): -0.9035069703406873
+		Min difference from previous: 0.0
+		Max difference from previous: 604.650390625
+
+
+Hybrid:
+	Mean-Squared Error: 199,99
+	Root Mean-Squared Error: 14,14
+	Mean-Absolute Error: 9,9
+	Relative-Squared Error: 0,8%
+	Root Relative-Squared Error: 8,94%
+	Relative-Absolute Error: 7,25%
+	Pearson Correlation Coefficient: 1
+	Mean Absolute Percentage Error: 0,42%
+
+Mean:
+	Mean-Squared Error: 24998,53
+	Root Mean-Squared Error: 158,11
+	Mean-Absolute Error: 136,54
+	Relative-Squared Error: 100%
+	Root Relative-Squared Error: 100%
+	Relative-Absolute Error: 99,99%
+	Pearson Correlation Coefficient: �
+	Mean Absolute Percentage Error: 5,72%
+
+Median:
+	Mean-Squared Error: 25339,25
+	Root Mean-Squared Error: 159,18
+	Mean-Absolute Error: 136,37
+	Relative-Squared Error: 101,36%
+	Root Relative-Squared Error: 100,68%
+	Relative-Absolute Error: 99,87%
+	Pearson Correlation Coefficient: �
+	Mean Absolute Percentage Error: 5,67%
+
+Multiple Linear Regression:
+	Mean-Squared Error: 461,75
+	Root Mean-Squared Error: 21,49
+	Mean-Absolute Error: 16,29
+	Relative-Squared Error: 1,85%
+	Root Relative-Squared Error: 13,59%
+	Relative-Absolute Error: 11,93%
+	Pearson Correlation Coefficient: 0,99
+	Mean Absolute Percentage Error: 0,69%
+
+Multiple Polynomial Regression:
+	Mean-Squared Error: 215,82
+	Root Mean-Squared Error: 14,69
+	Mean-Absolute Error: 10,36
+	Relative-Squared Error: 0,86%
+	Root Relative-Squared Error: 9,29%
+	Relative-Absolute Error: 7,59%
+	Pearson Correlation Coefficient: 1
+	Mean Absolute Percentage Error: 0,44%
+
+Polynomial Curve Fitter (ApacheMethod) with 2 order:
+	On column 0:
+		Mean-Squared Error: 547,9
+		Root Mean-Squared Error: 23,41
+		Mean-Absolute Error: 17,69
+		Relative-Squared Error: 2,19%
+		Root Relative-Squared Error: 14,8%
+		Relative-Absolute Error: 12,96%
+		Pearson Correlation Coefficient: 0,99
+		Mean Absolute Percentage Error: 0,75%
+	On column 1:
+		Mean-Squared Error: 215,85
+		Root Mean-Squared Error: 14,69
+		Mean-Absolute Error: 10,36
+		Relative-Squared Error: 0,86%
+		Root Relative-Squared Error: 9,29%
+		Relative-Absolute Error: 7,59%
+		Pearson Correlation Coefficient: 1
+		Mean Absolute Percentage Error: 0,44%
+
+Polynomial Curve Fitter (ApacheMethod) with 3 order:
+	On column 0:
+		Mean-Squared Error: 547,9
+		Root Mean-Squared Error: 23,41
+		Mean-Absolute Error: 17,69
+		Relative-Squared Error: 2,19%
+		Root Relative-Squared Error: 14,8%
+		Relative-Absolute Error: 12,96%
+		Pearson Correlation Coefficient: 0,99
+		Mean Absolute Percentage Error: 0,75%
+	On column 1:
+		Mean-Squared Error: 201,09
+		Root Mean-Squared Error: 14,18
+		Mean-Absolute Error: 9,91
+		Relative-Squared Error: 0,8%
+		Root Relative-Squared Error: 8,97%
+		Relative-Absolute Error: 7,26%
+		Pearson Correlation Coefficient: 1
+		Mean Absolute Percentage Error: 0,42%
+	
